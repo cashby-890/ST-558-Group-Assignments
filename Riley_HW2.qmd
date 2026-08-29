@@ -5,14 +5,14 @@ format: html
 ---
 
 # Assignment Information
-ST 558
-Homework 2
-Individual Portion
+ST 558\
+Homework 2\
+Individual Portion\
 Shannon Riley
 
 # Tasks
 
-##Task 1: Basic Vector Practice
+## Task 1: Basic Vector Practice
 --
 
 Create vectors of pre-treatment and post-treament blood pressure measurements:
@@ -56,3 +56,24 @@ avgDecr <- mean(onlyDecr)
 
 ## Task 2: Basic Data Frame Practice
 --
+
+Create a data frame with columns for patient, pre-treamtent blood pressure, post-treamtent blood pressure, and difference in blood pressure:
+```{r}
+bp <- data.frame(patient = names(preBP), preBP, postBP, changeBP, row.names = NULL)
+```
+
+Subset the data frame to retain only observations where the difference in blood pressure is negative:
+```{r}
+subset(bp, changeBP < 0)
+```
+
+Add a new column to the data frame with TRUE is post-treatment blood pressure is less than 120:
+```{r}
+bp$postBP120 <- c(bp$postBP < 120)
+```
+
+```{r}
+#| echo: false
+knitr::kable(bp, col.names = c('Patient Identifier', 'Pre-Treatment Blood Pressure', 'Post-Treatment Blood Pressure', 'Change in Blood Pressure', 'Post-Treamtent Blood Pressure Less Than 120?'), align = c('l', 'r', 'r', 'r', 'r'), caption = 'Blood Pressure Change')
+```
+
