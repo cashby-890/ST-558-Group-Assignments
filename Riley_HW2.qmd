@@ -77,3 +77,30 @@ bp$postBP120 <- c(bp$postBP < 120)
 knitr::kable(bp, col.names = c('Patient Identifier', 'Pre-Treatment Blood Pressure', 'Post-Treatment Blood Pressure', 'Change in Blood Pressure', 'Post-Treamtent Blood Pressure Less Than 120?'), align = c('l', 'r', 'r', 'r', 'r'), caption = 'Blood Pressure Change')
 ```
 
+## Task 3: List Practice
+--
+
+Create a data frame of blood pressure measurements before and after a placebo treatment, the difference between measurements, and whether or not the post-treatment measurement was below 120:
+```{r}
+plcbPreBP <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
+plcbPostBP <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
+placebo <- data.frame(patient = paste('Subject', 1:10, sep = "_"), preBP = plcbPreBP, postBP = plcbPostBP, changeBP = plcbPreBP - plcbPostBP, postBP120 = c(plcbPostBP < 120))
+```
+
+Create and store a list with both data frames:
+```{r}
+bpList <- list(treatment = bp, placebo = placebo)
+```
+
+Access the first list element using three different types of syntax:
+```{r}
+bpList$treatment
+bpList[1]
+bpList[[1]]
+```
+
+Access the pre-treatment measurement column of the placebo data frame in one line:
+```{r}
+bpList$placebo[2]
+```
+

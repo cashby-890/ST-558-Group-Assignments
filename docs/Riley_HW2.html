@@ -373,6 +373,112 @@ Shannon Riley</p>
 </table>
 </div>
 </div>
+</section>
+<section id="task-3-list-practice" class="level2">
+<h2 class="anchored" data-anchor-id="task-3-list-practice">## Task 3: List Practice</h2>
+<p>Create a data frame of blood pressure measurements before and after a placebo treatment, the difference between measurements, and whether or not the post-treatment measurement was below 120:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plcbPreBP <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">138</span>, <span class="dv">135</span>, <span class="dv">147</span>, <span class="dv">117</span>, <span class="dv">152</span>, <span class="dv">134</span>, <span class="dv">114</span>, <span class="dv">121</span>, <span class="dv">131</span>, <span class="dv">130</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>plcbPostBP <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">105</span>, <span class="dv">136</span>, <span class="dv">123</span>, <span class="dv">130</span>, <span class="dv">134</span>, <span class="dv">143</span>, <span class="dv">135</span>, <span class="dv">139</span>, <span class="dv">120</span>, <span class="dv">124</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>placebo <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">patient =</span> <span class="fu">paste</span>(<span class="st">'Subject'</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">sep =</span> <span class="st">"_"</span>), <span class="at">preBP =</span> plcbPreBP, <span class="at">postBP =</span> plcbPostBP, <span class="at">changeBP =</span> plcbPreBP <span class="sc">-</span> plcbPostBP, <span class="at">postBP120 =</span> <span class="fu">c</span>(plcbPostBP <span class="sc">&lt;</span> <span class="dv">120</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Create and store a list with both data frames:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bpList <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">treatment =</span> bp, <span class="at">placebo =</span> placebo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Access the first list element using three different types of syntax:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>bpList<span class="sc">$</span>treatment</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      patient preBP postBP changeBP postBP120
+1   Subject_1   130    114       16      TRUE
+2   Subject_2   128     98       30      TRUE
+3   Subject_3   116    113        3      TRUE
+4   Subject_4   124     99       25      TRUE
+5   Subject_5   133    107       26      TRUE
+6   Subject_6   134    116       18      TRUE
+7   Subject_7   118    113        5      TRUE
+8   Subject_8   126    111       15      TRUE
+9   Subject_9   114    119       -5      TRUE
+10 Subject_10   127    117       10      TRUE
+11 Subject_11   141    101       40      TRUE
+12 Subject_12   138    119       19      TRUE
+13 Subject_13   128    130       -2     FALSE
+14 Subject_14   140    122       18     FALSE
+15 Subject_15   137    106       31      TRUE
+16 Subject_16   131    106       25      TRUE
+17 Subject_17   120    124       -4     FALSE
+18 Subject_18   128    102       26      TRUE
+19 Subject_19   139    117       22      TRUE
+20 Subject_20   135    113       22      TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>bpList[<span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$treatment
+      patient preBP postBP changeBP postBP120
+1   Subject_1   130    114       16      TRUE
+2   Subject_2   128     98       30      TRUE
+3   Subject_3   116    113        3      TRUE
+4   Subject_4   124     99       25      TRUE
+5   Subject_5   133    107       26      TRUE
+6   Subject_6   134    116       18      TRUE
+7   Subject_7   118    113        5      TRUE
+8   Subject_8   126    111       15      TRUE
+9   Subject_9   114    119       -5      TRUE
+10 Subject_10   127    117       10      TRUE
+11 Subject_11   141    101       40      TRUE
+12 Subject_12   138    119       19      TRUE
+13 Subject_13   128    130       -2     FALSE
+14 Subject_14   140    122       18     FALSE
+15 Subject_15   137    106       31      TRUE
+16 Subject_16   131    106       25      TRUE
+17 Subject_17   120    124       -4     FALSE
+18 Subject_18   128    102       26      TRUE
+19 Subject_19   139    117       22      TRUE
+20 Subject_20   135    113       22      TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>bpList[[<span class="dv">1</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      patient preBP postBP changeBP postBP120
+1   Subject_1   130    114       16      TRUE
+2   Subject_2   128     98       30      TRUE
+3   Subject_3   116    113        3      TRUE
+4   Subject_4   124     99       25      TRUE
+5   Subject_5   133    107       26      TRUE
+6   Subject_6   134    116       18      TRUE
+7   Subject_7   118    113        5      TRUE
+8   Subject_8   126    111       15      TRUE
+9   Subject_9   114    119       -5      TRUE
+10 Subject_10   127    117       10      TRUE
+11 Subject_11   141    101       40      TRUE
+12 Subject_12   138    119       19      TRUE
+13 Subject_13   128    130       -2     FALSE
+14 Subject_14   140    122       18     FALSE
+15 Subject_15   137    106       31      TRUE
+16 Subject_16   131    106       25      TRUE
+17 Subject_17   120    124       -4     FALSE
+18 Subject_18   128    102       26      TRUE
+19 Subject_19   139    117       22      TRUE
+20 Subject_20   135    113       22      TRUE</code></pre>
+</div>
+</div>
+<p>Access the pre-treatment measurement column of the placebo data frame in one line:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>bpList<span class="sc">$</span>placebo[<span class="dv">2</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   preBP
+1    138
+2    135
+3    147
+4    117
+5    152
+6    134
+7    114
+8    121
+9    131
+10   130</code></pre>
+</div>
+</div>
 
 
 </section>
