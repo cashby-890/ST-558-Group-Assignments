@@ -1,0 +1,58 @@
+---
+title: "Riley_HW2"
+author: "Shannon Riley"
+format: html
+---
+
+# Assignment Information
+ST 558
+Homework 2
+Individual Portion
+Shannon Riley
+
+# Tasks
+
+##Task 1: Basic Vector Practice
+--
+
+Create vectors of pre-treatment and post-treament blood pressure measurements:
+```{r}
+preBP <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+
+postBP <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+```
+
+Assign subject names to the blood pressure measurements (vector elements):
+```{r}
+names(preBP) <- paste('Subject', 1:20, sep = "_")
+names(postBP) <- paste('Subject', 1:20, sep = "_")
+```
+
+Calculate the change in blood pressure for each patient:
+```{r}
+changeBP <- preBP - postBP
+```
+
+Calculate average decrease in blood pressure across all patients:
+```{r}
+avgChange <- mean(changeBP)
+```
+
+Determine which patients experienced a decrease in blood pressure:
+```{r}
+dcrs <- which(changeBP > 0)
+```
+
+Subset the vector of differences to only retain those that had a decrease in blood pressure:
+```{r}
+onlyDecr <- changeBP[dcrs]
+```
+
+Calculate the average decrease in blood pressure for patients whose blood pressure decreased:
+```{r}
+avgDecr <- mean(onlyDecr)
+```
+
+
+## Task 2: Basic Data Frame Practice
+--
