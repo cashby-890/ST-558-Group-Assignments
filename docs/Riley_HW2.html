@@ -479,6 +479,42 @@ Shannon Riley</p>
 10   130</code></pre>
 </div>
 </div>
+</section>
+<section id="task-4-control-flow-practice" class="level2">
+<h2 class="anchored" data-anchor-id="task-4-control-flow-practice">## Task 4: Control Flow Practice</h2>
+<p>Create a new column in each data frame called status:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>bpList<span class="sc">$</span>treatment<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">20</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>bpList<span class="sc">$</span>placebo<span class="sc">$</span>status <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Use a for loop and if/else logic to fill the status column of the treatment data frame with “optimal”, “borderline”, or “high” based on the post-treatment blood pressure measurement:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (patient <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(bpList<span class="sc">$</span>treatment)[<span class="dv">1</span>]) {</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (bpList<span class="sc">$</span>treatment<span class="sc">$</span>postBP[patient] <span class="sc">&lt;=</span> <span class="dv">120</span>) {</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>treatment<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'optimal'</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (bpList<span class="sc">$</span>treatment<span class="sc">$</span>postBP[patient] <span class="sc">&gt;</span> <span class="dv">130</span>) {</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>treatment<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'high'</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> {</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>treatment<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'borderline'</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Use a for loop and if/else logic to fill the status column of the placebo data frame with “optimal”, “borderline”, or “high” based on the post-treatment blood pressure measurement:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (patient <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">dim</span>(bpList<span class="sc">$</span>placebo)[<span class="dv">1</span>]) {</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (bpList<span class="sc">$</span>placebo<span class="sc">$</span>postBP[patient] <span class="sc">&lt;=</span> <span class="dv">120</span>) {</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>placebo<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'optimal'</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> (bpList<span class="sc">$</span>placebo<span class="sc">$</span>postBP[patient] <span class="sc">&gt;</span> <span class="dv">130</span>) {</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>placebo<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'high'</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> {</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    bpList<span class="sc">$</span>placebo<span class="sc">$</span>status[patient] <span class="ot">&lt;-</span> <span class="st">'borderline'</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 
 
 </section>

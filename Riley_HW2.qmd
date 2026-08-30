@@ -104,3 +104,42 @@ Access the pre-treatment measurement column of the placebo data frame in one lin
 bpList$placebo[2]
 ```
 
+## Task 4: Control Flow Practice
+--
+
+Create a new column in each data frame called status:
+```{r}
+bpList$treatment$status <- character(20)
+bpList$placebo$status <- character(10)
+```
+
+Use a for loop and if/else logic to fill the status column of the treatment data frame with "optimal", "borderline", or "high" based on the post-treatment blood pressure measurement:
+```{r}
+for (patient in 1:dim(bpList$treatment)[1]) {
+  if (bpList$treatment$postBP[patient] <= 120) {
+    bpList$treatment$status[patient] <- 'optimal'
+    }
+  else if (bpList$treatment$postBP[patient] > 130) {
+    bpList$treatment$status[patient] <- 'high'
+    }
+  else {
+    bpList$treatment$status[patient] <- 'borderline'
+    }
+}
+```
+
+Use a for loop and if/else logic to fill the status column of the placebo data frame with "optimal", "borderline", or "high" based on the post-treatment blood pressure measurement:
+```{r}
+for (patient in 1:dim(bpList$placebo)[1]) {
+  if (bpList$placebo$postBP[patient] <= 120) {
+    bpList$placebo$status[patient] <- 'optimal'
+    }
+  else if (bpList$placebo$postBP[patient] > 130) {
+    bpList$placebo$status[patient] <- 'high'
+    }
+  else {
+    bpList$placebo$status[patient] <- 'borderline'
+    }
+}
+```
+
