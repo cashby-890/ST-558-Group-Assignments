@@ -7,6 +7,57 @@ date: 31AUG2026
 purpose: create HW2 content (individual)
 ---
 
+# Question 1
+
+The following code creates the pre-/post-treatment records as 2 different vectors
+
+print(mean(pos_subset))
+
 ```{r}
-y <- density(iris$Petal.Width)
+
+measurement_pre <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+print(measurement_pre)
+
+measurement_post <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+print(measurement_post)
+
+```
+
+The following Code assigns names to these vectors
+
+```{r}
+names(measurement_pre) <- paste("Subject", 1:20, sep = "_")
+print(measurement_pre)
+
+names(measurement_post) <- paste("Subject", 1:20, sep = "_")
+print(measurement_post)
+```
+
+The following stores the difference of the pre-/post- treatment records, a positive record indicates a decrease in blood pressure.
+
+```{r}
+diffs <- measurement_pre - measurement_post
+print(diffs)
+```
+
+This is the mean of the difference of among all patients.
+
+```{r}
+
+print(mean(diffs))
+```
+
+The following returns a vector of which subjects experienced a positive change, and stores the records as a subset.
+
+```{r}
+
+print(which(diffs>0))
+
+pos_subset <- diffs[which(diffs>0)]
+```
+
+This is the mean of the difference of among patients who experienced a decrease in blood pressure.
+
+```{r}
+print(mean(pos_subset))
 ```
