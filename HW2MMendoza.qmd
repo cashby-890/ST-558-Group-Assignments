@@ -11,53 +11,81 @@ purpose: create HW2 content (individual)
 
 The following code creates the pre-/post-treatment records as 2 different vectors
 
-print(mean(pos_subset))
-
 ```{r}
 
-measurement_pre <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
-print(measurement_pre)
+pre_bp <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
+print(pre_bp)
 
-measurement_post <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
-print(measurement_post)
+post_bp <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 122, 106, 106, 124, 102, 117, 113)
+print(post_bp)
 
 ```
 
-The following Code assigns names to these vectors
+The following Code assigns names to these vectors and creates a vector of these names.
 
 ```{r}
-names(measurement_pre) <- paste("Subject", 1:20, sep = "_")
-print(measurement_pre)
+names(pre_bp) <- paste("Subject", 1:20, sep = "_")
+print(pre_bp)
 
-names(measurement_post) <- paste("Subject", 1:20, sep = "_")
-print(measurement_post)
+names(post_bp) <- paste("Subject", 1:20, sep = "_")
+print(post_bp)
+
+patient <- paste("Subject", 1:20, sep = "_")
+print(patient)
 ```
 
 The following stores the difference of the pre-/post- treatment records, a positive record indicates a decrease in blood pressure.
 
 ```{r}
-diffs <- measurement_pre - measurement_post
-print(diffs)
+diff_bp <- pre_bp - post_bp
+print(diff_bp)
 ```
 
 This is the mean of the difference of among all patients.
 
 ```{r}
 
-print(mean(diffs))
+print(mean(diff_bp))
 ```
 
 The following returns a vector of which subjects experienced a positive change, and stores the records as a subset.
 
 ```{r}
 
-print(which(diffs>0))
+print(which(diff_bp>0))
 
-pos_subset <- diffs[which(diffs>0)]
+pos_subset <- diff_bp[which(diff_bp>0)]
 ```
 
 This is the mean of the difference of among patients who experienced a decrease in blood pressure.
 
 ```{r}
-print(mean(pos_subset))
+print(mean(diff_bp))
+```
+
+# Question 2
+
+The following code creates a data frame with 4 variables: patient, pre_bp, post_bp, and diff_bp
+
+```{r}
+bp_df <- data.frame(patient, pre_bp, post_bp, diff_bp)
+```
+
+Return only negative difference patients.
+
+```{r}
+print(bp_df[bp_df$diff_bp < 0, ])
+```
+
+Adding True/False flag to dataset when post_bp \< 120
+
+```{r}
+bp_df$lt_120 <- bp_df$diff_bp < 0
+print(bp_df)
+```
+
+Knit code to print bp_df to final document.
+
+```{r}
+knitr::kable(bp_df, caption = 'Blood Pressure Data Table')
 ```
