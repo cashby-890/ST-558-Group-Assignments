@@ -1,0 +1,130 @@
+---
+title: "Practice with Basic R Data Structures and Control Flow"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+## Task One: Basic Vector Practice
+
+SOmething will go here...
+
+```{r}
+pre_bp_1 = c(130,128,116,124,133,134,118,126,114,127,141,138,128,140,137,131,120,128,139,135)
+post_bp_1 = c(114,98,113,97,107,116,113,111,119,117,101,119,130,122,106,106,124,102,117,113)
+patients_1 = paste("Subject",1:20,sep="_")
+diff_bp_1 = pre_bp_1 - post_bp_1
+```
+
+```{r}
+mean(diff_bp_1)
+```
+
+```{r}
+which(diff_bp_1 > 0)
+```
+
+```{r}
+diff_bp_1[diff_bp_1 > 0]
+```
+
+```{r}
+mean(diff_bp_1[diff_bp_1 > 0])
+```
+
+## Task Two: Basic Data Frame Practice
+
+```{r}
+bp_data_1=data.frame(patients_1,pre_bp_1,post_bp_1,diff_bp_1)
+```
+
+Returning rows with negative bp difference
+
+```{r}
+subset(bp_data_1,diff_bp_1<0)
+```
+
+add new column determining if post_bp is less than 120
+
+```{r}
+normal_bp_1=bp_data_1[,3] < 120
+```
+
+```{r}
+updated_bp_data_1=data.frame(bp_data_1,normal_bp_1)
+knitr::kable(updated_bp_data_1)
+```
+
+## Task Three: List Practice
+
+```{r}
+pre_bp_2=c(138,135,147,117,152,134,114,121,131,130)
+post_bp_2=c(105,136,123,130,134,143,135,139,120,124)
+diff_bp_2=pre_bp_2 - post_bp_2
+patients_2=paste("Subject",21:30,sep="_")
+bp_data_2=data.frame(patients_2,pre_bp_2,post_bp_2,diff_bp_2)
+normal_bp_2=bp_data_2[,3] < 120
+updated_bp_data_2=data.frame(bp_data_2,normal_bp_2)
+```
+
+
+
+```{r}
+overall_bp_data=list(treatment=updated_bp_data_1,placebo=updated_bp_data_2)
+```
+
+Three different ways to access the first element of this list:
+
+```{r}
+overall_bp_data$treatment
+```
+
+```{r}
+overall_bp_data[1]
+```
+
+```{r}
+overall_bp_data[[1]]
+```
+
+Accessing the pre_bp values from the placebo data:
+
+```{r}
+overall_bp_data[[2]][,2]
+```
+
+## Task Four: Control Flow Practice
+
+```{r}
+updated_bp_data_1$status <- character(20)
+updated_bp_data_2$status <- character(10)
+```
+
+```{r}
+for (i in 1:20){
+  if (updated_bp_data_1$post_bp_1[i] <= 120) {
+    updated_bp_data_1$status = "optimal"
+  }  else if ((updated_bp_data_1$post_bp_1[i] > 120) & (updated_bp_data_1$post_bp_1[i] <= 130)) {
+    updated_bp_data_1$status = "borderline"
+  }  else if (updated_bp_data_1$post_bp_1[i] > 130) {
+    updated_bp_data_1$status = "high"
+  }
+}
+```
+
+```{r}
+for (i in 1:10){
+  if (updated_bp_data_2$post_bp_2[i] <= 120) {
+    updated_bp_data_2$status = "optimal"
+  }  else if ((updated_bp_data_2$post_bp_2[i] > 120) & (updated_bp_data_2$post_bp_2[i] <= 130)) {
+    updated_bp_data_2$status = "borderline"
+  }  else if (updated_bp_data_2$post_bp_2[i] > 130) {
+    updated_bp_data_2$status = "high"
+  }
+}
+```
+
+```{r}
+overall_bp_data = list(updated_bp_data_1,updated_bp_data_2)
+overall_bp_data
+```
