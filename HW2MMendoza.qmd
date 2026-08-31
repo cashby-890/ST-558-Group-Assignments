@@ -1,0 +1,12 @@
+---
+title: "Homework 2: Individual"
+author: "Michael Mendoza"
+format: html
+editor: visual
+date: 31AUG2026
+purpose: create HW2 content (individual)
+---
+
+```{r}
+y <- density(iris$Petal.Width)
+```
