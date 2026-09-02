@@ -1,6 +1,6 @@
 ---
-title: "Homework 2: Individual"
-author: "Michael Mendoza"
+title: "Homework 2: Group"
+author: "Group 4, Combined by MMendoza"
 format: html
 editor: visual
 ---
