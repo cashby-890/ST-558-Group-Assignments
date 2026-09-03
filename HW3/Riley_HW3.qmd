@@ -1,0 +1,17 @@
+---
+title: "Riley_HW3"
+format: html
+---
+
+Assignment Information
+ST 558
+Homework 3
+Individual
+Shannon Riley
+
+# Task 1: Conceptual Questions
+--
+
+# Task 2: Reading Delimited Data
+--
+
