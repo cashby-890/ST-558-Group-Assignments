@@ -4,3 +4,32 @@ author: "Mike Mendoza"
 format: html
 editor: visual
 ---
+
+# Setup/Misc.
+
+```{r}
+#| echo: false
+
+# Librarys Required
+library(tidyverse)
+library(readxl)
+```
+
+# Task 1
+
+## Question 1
+
+## Question 2
+
+## Question 3
+
+## Question 4
+
+# Task 2
+
+```{r}
+glass_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+                      col_names=c("seq_name","meg","gvh","alm","mit","erl","pox","vac","nuc","class") )
+
+glass_data
+```
