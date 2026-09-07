@@ -1,0 +1,12 @@
+---
+title: "HW3_Xiao_Individual"
+format: html
+editor: visual
+---
+
+## Task 1: Conceptual Questions
+
+1.  In order to access the previous folder in the working directory, the relative path you would specify to get the file would be "../myData.csv". The notation ".." tells R to move up one folder or directory from "homework" into "myfolder".
+2.  A major benefit of using R projects is that it is well suited to work with Git/Github. Another major benefit of using R is that all files associated with the project in one location.
+3.  Git is a version-control system that tracks changes made to files and allows us to view those very changes. It also manages branching and merging too. Github is the online platform that hosts Git repos and makes it easy to store, share, and even collaborate with others on projects.
+4.  Tibbles prints a finite amount of rows and columns such that it fits the size of the screen whereas a data.frame would display the whole dataset. Tibbles also have more strict notations that doesn't allow partial column name matching.
