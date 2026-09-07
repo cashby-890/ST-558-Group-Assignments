@@ -1,6 +1,6 @@
 ---
 title: "HW3MMendoza"
-author: "Mike mendoza"
+author: "Mike Mendoza"
 format: html
 editor: visual
 ---
