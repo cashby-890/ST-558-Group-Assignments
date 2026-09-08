@@ -30,8 +30,9 @@ library(readr)
 
 ```{r}
 # This code loads the glass.data file from URL with comma (,) Delimiter
-glass_data <- read_csv(
+glass_data <- read_delim(
   "https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+  delim=",",
   col_names=c("Id", "RI", "Na", "Mg", "Al", "Si", "K",
               "Ca", "Ba", "Fe", "Glass_Type")
   )
@@ -42,15 +43,15 @@ glass_data
 # This code reads in the yeast data from the URL
 yeast_data <-  read_table(
   "https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
-  col_names=c("seq_name","meg","gvh","alm","mit","erl","pox",
-              "vac","nuc","class")
+  col_names=c("seq_name", "meg", "gvh", "alm", "mit", "erl", "pox",
+              "vac", "nuc", "class")
   )
 
 yeast_data
 
 ```
 
-# Task 3
+# Task 3 
 
 ```{r}
 # This code reads the excel data for white Wine
@@ -78,11 +79,46 @@ white_wine <- mutate(white_wine, type = "white")
 
 white_wine
 
-# This code reads in the red wine .CSV semicolon (;) delimited file.
-red_wine <- read_csv(
-  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv."
-)
+# This code reads in the red wine .CSV semicolon (;) delimited file,
+# assigns colnames, and assigns variable type a value of red
+red_wine <- read_delim(
+  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",
+  delim=";",
+  col_names=c("fixed_acidity", "volatile_acidity", "citric_acid", 
+              "residual_sugar", "chlorides", "free_sulfur_dioxide", 
+              "total_sulfur_dioxide", "density", "pH", "sulphates", 
+              "alcohol", "quality"),
+  skip = 1
+) %>% mutate(type = "red")
 
 red_wine
+
+# combine white_wine and red_wine datasets using dply::bind_rows()
+all_wine <- dplyr::bind_rows(list(red_wine, white_wine))
+
+all_wine
+
+```
+
+# Task 4
+
+```{r}
+# write Function getIQR
+getIQR <- function(data){
+  
+  iqr_range <- data %>% quantile(
+                                  probs = c(0.25, 0.75)
+                                  ) 
+  iqr_value <- unname(iqr_range[1] - iqr_range[2])
+  
+  return(iqr_value)
+}
+
+# execute function getIQR on all_wine$fixed_acidity
+getIQR(all_wine$fixed_acidity)
+
+# execute function getIQR on all_wine$fixed_acidity
+getIQR(all_wine$citric_acid)
+
 
 ```
