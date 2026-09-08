@@ -1,0 +1,159 @@
+---
+title: "Exam Prep, Reading Delimited Data, and Writing Functions"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+# Task One: Conceptual Questions
+
+1.  If your Working directory is `myfolder/homework/`, what relative path would you specify to get the file located at `myfolder/MyData.csv`?
+
+-   
+
+2.  What are the major benefits of R projects?
+
+-   
+
+3.  What is `Git` and what is `GitHub`?
+
+-   
+
+4.  What are the two main differences between a `tibble` and a `data.frame`?
+
+-   
+
+# Task Two: Reading Delimited Data
+
+Here we'll practice reading in data sets from the UCI machine learning repository using functions from the `tidyverse`. Namely, we'll use the `readr` package. Before doing so, let's install the package first and then load it so we can utilize the functions associated with it.
+
+```{r}
+install.packages("readr")
+
+#After installation, we'll load the package so we can actually use it.
+
+library(readr)
+```
+
+## Glass Data
+
+Now, we can read in our first data set, which is a standard csv file.
+
+```{r}
+glass.data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+                       col_names=c("ID","Refrac_Index","Na","Mg","Al","Si","K","Ca","Ba","Fe",
+                                   "Type_of_Glass"))
+```
+
+We can simply call the object to get the `tibble`.
+
+```{r}
+glass.data
+```
+
+## Yeast Data
+
+Our second data set appears to be tab-delimited, but each column is actually separated by two spaces. We'll use the generic `read_table()` command in this case.
+
+```{r}
+yeast.data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
+                         col_names=c("seq_name","mcg","gvh","alm","mit","erl","pox","vac","nuc",
+                                     "class"))
+```
+
+As before, we'll print out the `tibble` by calling the object.
+
+```{r}
+yeast.data
+```
+
+# Task Three: Combining Excel and Delimited Data
+
+Since we'll be reading in an Excel file, we'll need to install and upload the `readxl` package.
+
+```{r}
+install.packages("readxl")
+library(readxl)
+```
+
+This time around, we'll read in a couple of files pertaining to the red and white variants of the Portuguese Vinho Verde wine. The first one, consisting of the white wines, is an Excel file which has two sheets. The first one consists of the data itself while the second has the list of variable names.
+
+```{r}
+white_wine=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=1)
+white_wine
+```
+
+```{r}
+white_wine_colnames=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=2)
+colnames(White_wine)=white_wine_colnames$Variables
+```
+
+```{r}
+white_wine$type="white"
+```
+
+```{r}
+red_wine<-read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",delim=";")
+colnames(red_wine)<-white_wine_colnames$Variables
+red_wine$type="red"
+```
+
+```{r}
+all_wines=dplyr::bind_rows(white_wine,red_wine)
+```
+
+# Task Four: Writing a Function
+
+```{r}
+getIQR <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  upper_quart=quantile(input)[[4]]
+  lower_quart=quantile(input)[[2]]
+  return(unname(upper_quart - lower_quart))
+}
+```
+
+Test IQR function on fixed_acidity and citric_acid for combined wine data set
+
+```{r}
+getCoefVar <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  stdev=sd(input)
+  mag_mean=abs(mean(input))
+  return(unname(stdev/mag_mean))
+}
+```
+
+Test CoefVar function on fixed_acidity and citric_acid for combined wine data set
+
+```{r}
+getSummaries <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  IQ_range <- getIQR(input)
+  CV <- getCoefVar(input)
+  return(list(IQ_range,CV))
+}
+```
+
+Test Summaries function on fixed_acidity and citric_acid for combined wine data set
+
+```{r}
+`%attach%` <- function(x,y) cbind(x,y) 
+```
+
+```{r}
+df1 <- data.frame(unif=runif(10),norm=rnorm(10))
+df2 <- data.frame(gamma=rgamma(10,1),beta=rbeta(10,5,2))
+vec1 <- rnorm(10,10)
+```
+
+```{r}
+df1 %attach% df2
+df1 %attach% df2 %attach% vec1
+```
