@@ -13,6 +13,7 @@ editor: visual
 # Librarys Required
 library(tidyverse)
 library(readxl)
+library(readr)
 ```
 
 # Task 1
@@ -28,8 +29,60 @@ library(readxl)
 # Task 2
 
 ```{r}
-glass_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data",
-                      col_names=c("seq_name","meg","gvh","alm","mit","erl","pox","vac","nuc","class") )
+# This code loads the glass.data file from URL with comma (,) Delimiter
+glass_data <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+  col_names=c("Id", "RI", "Na", "Mg", "Al", "Si", "K",
+              "Ca", "Ba", "Fe", "Glass_Type")
+  )
 
 glass_data
+
+
+# This code reads in the yeast data from the URL
+yeast_data <-  read_table(
+  "https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
+  col_names=c("seq_name","meg","gvh","alm","mit","erl","pox",
+              "vac","nuc","class")
+  )
+
+yeast_data
+
+```
+
+# Task 3
+
+```{r}
+# This code reads the excel data for white Wine
+white_wine <- read_excel(
+  "~/ST558/ST-558-Group-Assignments/HW3/white-wine.xlsx",
+  sheet=1
+  )
+
+white_wine
+
+# this code creates a tibble of the excel sheet names.
+white_wine_names <- read_excel(
+  "~/ST558/ST-558-Group-Assignments/HW3/white-wine.xlsx",
+  sheet=2
+  )
+
+# assigning the column names of the white_wine dataset with the
+# string from white_wine_names
+colnames(white_wine) <- white_wine_names$Variables
+
+white_wine
+
+# assign White to the list of wines using mutate
+white_wine <- mutate(white_wine, type = "white")
+
+white_wine
+
+# This code reads in the red wine .CSV semicolon (;) delimited file.
+red_wine <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv."
+)
+
+red_wine
+
 ```
