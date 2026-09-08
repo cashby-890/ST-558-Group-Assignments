@@ -5,6 +5,7 @@ editor: visual
 ---
 
 ```{r}
+#install.packages("tidyverse")
 library(tidyverse)
 ```
 
@@ -17,7 +18,7 @@ library(tidyverse)
 
 ## Task 2: Reading Delimited Data
 
-### Glass Data
+#### 1. Glass Data
 
 ```{r}
 # Defining columns for Glass Data
@@ -29,7 +30,7 @@ glass_data <- read_csv(file="https://www4.stat.ncsu.edu/~online/datasets/glass.d
 glass_data
 ```
 
-Yeast Data
+#### 2. Yeast Data
 
 ```{r}
 # Defining columns for Yeast Data
@@ -41,4 +42,52 @@ yeast_data <- read_table(
 )
 yeast_data
 
+```
+
+## Task 3: Combining Excel and Delimited Data
+
+#### 3. White Wine Data Import
+
+```{r}
+#install.packages("readxl")
+library(readxl)
+```
+
+#### 4. Overwriting Column Names (Sheet 2 Names Replaces Sheet 1's)
+
+```{r}
+white_wine_url <- "https://www4.stat.ncsu.edu/~online/datasets/white-wine.xlsx"
+download.file(white_wine_url, destfile = "white-wine.xlsx", mode = "wb")
+
+white_wine <- read_excel("white-wine.xlsx", sheet = 1)
+white_wine
+```
+
+#### 5. Add Wine Type Column
+
+```{r}
+white_wine_names <- read_excel("white-wine.xlsx", sheet=2)
+
+colnames(white_wine) <- white_wine_names[[1]]
+```
+
+#### 6. Read and Clean Red Wine Data
+
+```{r}
+red_wine <- read_delim(file = "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ";")
+
+colnames(red_wine) <- white_wine_names[[1]]
+
+red_wine <- red_wine %>%
+    mutate(type = "red")
+
+red_wine
+```
+
+#### 7. Combine Both Datasets
+
+```{r}
+wine_data <- bind_rows(white_wine, red_wine)
+
+wine_data
 ```
