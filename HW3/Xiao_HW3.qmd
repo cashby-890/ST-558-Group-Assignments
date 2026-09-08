@@ -18,7 +18,7 @@ library(tidyverse)
 
 ## Task 2: Reading Delimited Data
 
-#### 1. Glass Data
+#### 1. Importing Glass Data
 
 ```{r}
 # Defining columns for Glass Data
@@ -30,7 +30,7 @@ glass_data <- read_csv(file="https://www4.stat.ncsu.edu/~online/datasets/glass.d
 glass_data
 ```
 
-#### 2. Yeast Data
+#### 2. Importing Yeast Data
 
 ```{r}
 # Defining columns for Yeast Data
@@ -46,7 +46,7 @@ yeast_data
 
 ## Task 3: Combining Excel and Delimited Data
 
-#### 3. White Wine Data Import
+#### 3. Importing White Wine Data
 
 ```{r}
 #install.packages("readxl")
@@ -63,7 +63,7 @@ white_wine <- read_excel("white-wine.xlsx", sheet = 1)
 white_wine
 ```
 
-#### 5. Add Wine Type Column
+#### 5. Adding Wine Type Column
 
 ```{r}
 white_wine_names <- read_excel("white-wine.xlsx", sheet=2)
@@ -71,7 +71,7 @@ white_wine_names <- read_excel("white-wine.xlsx", sheet=2)
 colnames(white_wine) <- white_wine_names[[1]]
 ```
 
-#### 6. Read and Clean Red Wine Data
+#### 6. Reading and Cleaning Red Wine Data
 
 ```{r}
 red_wine <- read_delim(file = "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", delim = ";")
@@ -84,10 +84,76 @@ red_wine <- red_wine %>%
 red_wine
 ```
 
-#### 7. Combine Both Datasets
+#### 7. Combining Both Datasets
 
 ```{r}
 wine_data <- bind_rows(white_wine, red_wine)
 
 wine_data
+```
+
+#### 8.  Defining getIQR()
+
+```{r}
+getIQR <- function(x, ...) {
+  quants <- quantile(x, probs = c(0.25, 0.75), ...)
+  unname(quants[2]-quants[1])
+}
+```
+
+#### 9.  Applying getIQR() to Wine Columns
+
+```{r}
+getIQR(wine_data$fixed_acidity)
+getIQR(wine_data$citric_acid)
+```
+
+#### 10. Defining getCoefVar()
+
+```{r}
+getCoefVar <- function(x, ...) {
+  sd(x, ...) / abs(mean(x, ...))
+}
+```
+
+#### 11. Applying getCoefVar() to Wine Columns
+
+```{r}
+getCoefVar(wine_data$fixed_acidity)
+getCoefVar(wine_data$citric_acid)
+```
+
+#### 12. Defining getSummaries()
+
+```{r}
+getSummaries <- function(x, ...) {
+  c(IQR = getIQR(x, ...),
+    CoefVar = getCoefVar(x, ...)
+    )
+}
+```
+
+#### 13. Applying getSummaries() to Wine Columns
+
+```{r}
+getSummaries(wine_data$fixed_acidity)
+getSummaries(wine_data$citric_acid)
+```
+
+#### 14. Defining Custom Infix Function for Column Binding
+
+```{r}
+'%cbind%' <- function(x, y) {
+  cbind(x, y)
+}
+
+df1 <- data.frame(unif = runif(10), norm = rnorm(10))
+df2 <- data.frame(gamma = rgamma(10, shape=1), beta = rbeta(10, shape1 = 5, shape2 = 1))
+vec1 <- rnorm(10, mean = 10)
+
+df_combined_2 <- df1 %cbind% df2
+print(head(df_combined_2))
+
+df_combined_3 <- df1 %cbind% df2 %cbind% vec1
+print(head(df_combined_3))
 ```
