@@ -51,11 +51,7 @@ yeast_data
 ```{r}
 #install.packages("readxl")
 library(readxl)
-```
 
-#### 4. Overwriting Column Names (Sheet 2 Names Replaces Sheet 1's)
-
-```{r}
 white_wine_url <- "https://www4.stat.ncsu.edu/~online/datasets/white-wine.xlsx"
 download.file(white_wine_url, destfile = "white-wine.xlsx", mode = "wb")
 
@@ -63,12 +59,19 @@ white_wine <- read_excel("white-wine.xlsx", sheet = 1)
 white_wine
 ```
 
-#### 5. Adding Wine Type Column
+#### 4. Overwriting Column Names (Sheet 2 Names Replaces Sheet 1's)
 
 ```{r}
 white_wine_names <- read_excel("white-wine.xlsx", sheet=2)
 
 colnames(white_wine) <- white_wine_names[[1]]
+```
+
+#### 5. Adding Wine Type Column
+
+```{r}
+white_wine <- white_wine %>%
+  mutate(type = "white")
 ```
 
 #### 6. Reading and Cleaning Red Wine Data
@@ -92,7 +95,7 @@ wine_data <- bind_rows(white_wine, red_wine)
 wine_data
 ```
 
-#### 8.  Defining getIQR()
+#### 8. Defining getIQR()
 
 ```{r}
 getIQR <- function(x, ...) {
@@ -101,7 +104,7 @@ getIQR <- function(x, ...) {
 }
 ```
 
-#### 9.  Applying getIQR() to Wine Columns
+#### 9. Applying getIQR() to Wine Columns
 
 ```{r}
 getIQR(wine_data$fixed_acidity)
