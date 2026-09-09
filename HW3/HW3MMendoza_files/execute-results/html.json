@@ -1,0 +1,15 @@
+{
+  "hash": "ad1692bc1e5e468937b1b2bc8f533e51",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"HW3MMendoza\"\nauthor: \"Mike Mendoza\"\nformat: html\neditor: visual\n---\n\n# Setup/Misc.\n\n\n::: {.cell}\n::: {.cell-output .cell-output-stderr}\n\n```\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.2.1     ✔ readr     2.2.0\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.3     ✔ tibble    3.3.1\n✔ lubridate 1.9.5     ✔ tidyr     1.3.2\n✔ purrr     1.2.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors\n```\n\n\n:::\n:::\n\n\n# Task 1\n\n## Question 1\n\n## Question 2\n\n## Question 3\n\n## Question 4\n\n# Task 2\n\n\n::: {.cell}\n\n```{.r .cell-code}\nglass_data <- read_csv(\"https://www4.stat.ncsu.edu/~online/datasets/glass.data\",\n                      col_names=c(\"seq_name\",\"meg\",\"gvh\",\"alm\",\"mit\",\"erl\",\"pox\",\"vac\",\"nuc\",\"class\") )\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\nRows: 214 Columns: 11\n── Column specification ────────────────────────────────────────────────────────\nDelimiter: \",\"\ndbl (11): seq_name, meg, gvh, alm, mit, erl, pox, vac, nuc, class, X11\n\nℹ Use `spec()` to retrieve the full column specification for this data.\nℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.\n```\n\n\n:::\n\n```{.r .cell-code}\nglass_data\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n# A tibble: 214 × 11\n   seq_name   meg   gvh   alm   mit   erl   pox   vac   nuc class   X11\n      <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>\n 1        1  1.52  13.6  4.49  1.1   71.8  0.06  8.75     0  0        1\n 2        2  1.52  13.9  3.6   1.36  72.7  0.48  7.83     0  0        1\n 3        3  1.52  13.5  3.55  1.54  73.0  0.39  7.78     0  0        1\n 4        4  1.52  13.2  3.69  1.29  72.6  0.57  8.22     0  0        1\n 5        5  1.52  13.3  3.62  1.24  73.1  0.55  8.07     0  0        1\n 6        6  1.52  12.8  3.61  1.62  73.0  0.64  8.07     0  0.26     1\n 7        7  1.52  13.3  3.6   1.14  73.1  0.58  8.17     0  0        1\n 8        8  1.52  13.2  3.61  1.05  73.2  0.57  8.24     0  0        1\n 9        9  1.52  14.0  3.58  1.37  72.1  0.56  8.3      0  0        1\n10       10  1.52  13    3.6   1.36  73.0  0.57  8.4      0  0.11     1\n# ℹ 204 more rows\n```\n\n\n:::\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

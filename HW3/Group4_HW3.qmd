@@ -1,0 +1,193 @@
+---
+title: "Riley_HW3"
+format: html
+---
+
+Assignment Information\
+ST 558\
+Homework 3\
+Group 4\
+Compiled and Formatting By: Shannon Riley
+
+Task 1: Conceptual Questions
+--
+
+1. If your working directory is myfolder/homework/, what relative path would you specify to get the file
+located at myfolder/MyData.csv?
+   A) In order to access the previous folder in the working directory, the relative path you would specify to get the file would be "../MyData.csv". The notation ".." tells R to move up one folder or directory from "homework" into "myfolder".
+
+2. What are the major benefits of using R projects?
+   A) The major benefit to using R projects is that it tells your code where
+   to find files without needed to specify full path names, since R will look      for the file being called within the folder that the project is in. This        makes it easier to share your work. R projects also have their own workspace
+   and history.
+
+3. What is Git and what is GitHub?
+   A) Git is a version control software that tracks changes made to files and allows us to view those very changes. It also manages branching and merging too. Github is the online platform that hosts Git repos and makes it easy to store, share, and even collaborate with others on projects.
+
+4. What are the two main differences between a tibble and a data.frame?
+   1) A `data.frame` is a straight-forward collection of vectors of the same length, but can have different types. Names can easily be assigned to these vectors and certain elements can be accessed via `[ , ]` or `$`. A `tibble` has a lot of similarities to a `data.frame` except the display of a `tibble` only shows a handful of rows and provides more details about the variables in the data set; it's also easier to rename things with a `tibble`.
+    2)  Whenever an error occurs, a `tibble` will notify you unlike a `data.frame`, and tibbles also have more strict notations that doesn't allow partial column name matching.
+
+Task 2: Reading Delimited Data
+--
+
+```{r}
+#| echo: false
+#| output: false
+# Load required packages
+library(readr)
+```
+
+Read in the glass data and assign variable names:
+```{r}
+glass <- read_delim('https://www4.stat.ncsu.edu/~online/datasets/glass.data', 
+                       delim = ',',
+                       col_names = c('Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'glassType')
+)
+glass
+```
+
+
+Read in the yeast data and assign variable names:
+```{r}
+yeast <- read_table(
+  "https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
+  col_names = c("seq_name", "meg", "gvh", "alm", "mit", "erl", "pox",
+              "vac", "nuc", "class")
+  )
+yeast
+```
+
+
+Task 3: Combining Excel and Delimited Data
+--
+
+```{r}
+#| echo: false
+#| output: false
+# Load required packages
+library(readxl)
+library(dplyr)
+```
+#### White Wine Data Set
+
+Import the data from the first sheet of the white wine data set:
+```{r}
+whiteWine <- read_excel('../Data/HW3/white-wine.xlsx', sheet = 1)
+whiteWine
+```
+
+
+Read in the variable names from the second sheet of the white wine Excel file:
+```{r}
+whiteWineNames <- read_excel('../Data/HW3/white-wine.xlsx', sheet = 2)
+```
+
+Use this tibble of variable names to overwrite the column names in the 'whiteWine' tibble:
+```{r}
+colnames(whiteWine) <- c(whiteWineNames$Variables)
+```
+
+Add a column to this data set to indicate that the wines are white:
+```{r}
+whiteWine$type <- 'white'
+```
+
+#### Red Wine Data Set
+
+Read in the red wine data set and replace variable names using the same set of variable names as above:
+```{r}
+redWine <- read_delim('https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv', delim = ';')
+colnames(redWine) <- c(whiteWineNames$Variables)
+```
+
+Add a column to this data set to indicate that the wines are red:
+```{r}
+redWine$type <- 'red'
+```
+
+#### Both Data Sets
+
+Combine the two data sets:
+```{r}
+wine <- bind_rows(whiteWine, redWine)
+```
+
+
+Task 4: Writing a Function
+--
+
+#### Interquartile Range
+
+Write a function that takes a vector of numbers and returns the interquartile range:
+```{r}
+getIQR <- function(inputVector) {
+  if(!is.vector(inputVector) | !is.numeric(inputVector)){
+    stop('Input must be a numeric vector.')
+  }
+  unname(quantile(inputVector)[4] - quantile(inputVector)[2])
+}
+```
+
+Apply the *getIQR()* function to the 'fixed_acidity' and 'citric_acid' variables of the 'wines' data set:
+```{r}
+getIQR(wine$fixed_acidity)
+getIQR(wine$citric_acid)
+```
+
+#### Coefficient of Variation
+
+Write a function that takes a vector of numbers and returns the sample coefficient of variation:
+```{r}
+getCoefVar <- function(inputVector) {
+  if(!is.vector(inputVector) | !is.numeric(inputVector)){
+    stop('Input must be a numeric vector.')
+  }
+  sd(inputVector)/abs(mean(inputVector))
+}
+```
+
+Apply the *getCoefVar()* function to the 'fixed_acidity' and 'citric_acid' variables of the 'wines' data set:
+```{r}
+getCoefVar(wine$fixed_acidity)
+getCoefVar(wine$citric_acid)
+```
+
+#### Summary of Both
+
+Write a function that takes in a vector of numbers and returns both the IQR and the coefficient of variation using the functions written above:
+```{r}
+getSummaries <- function(inputVector) {
+  if(!is.vector(inputVector) | !is.numeric(inputVector)){
+    stop('Input must be a numeric vector.')
+  }
+  iqRange <- getIQR(inputVector)
+  coefVar <- getCoefVar(inputVector)
+  return(list('InterquartileRange' = iqRange, 'CoefficientofVariation' = coefVar))
+}
+```
+
+Apply the *getSummaries()* function to the 'fixed_acidity' and 'citric_acid' variables of the 'wines' data set
+```{r}
+getSummaries(wine$fixed_acidity)
+getSummaries(wine$citric_acid)
+```
+
+#### Infix Function
+
+Write an infix function that can be used to replace the *cbind()* function
+```{r}
+`%bind%` <- function(a, b) cbind(a, b)
+```
+
+Test the new infix function on the following data frames and then both data frames and the following vector
+```{r}
+# Set up data frames and vector
+df1 <- data.frame(unif = runif(10), norm = rnorm(10))
+df2 <- data.frame(gamma = rgamma(10, shape = 1), beta = rbeta(10, shape1 = 5, shape2 = 1))
+vec1 <- rnorm(10, mean = 10)
+
+# Test function
+df1 %bind% df2
+df1 %bind% df2 %bind% vec1
+```
