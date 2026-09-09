@@ -120,5 +120,28 @@ getIQR(all_wine$fixed_acidity)
 # execute function getIQR on all_wine$fixed_acidity
 getIQR(all_wine$citric_acid)
 
+# write Function getCoefVar
+getCoefVar <- function(data){
+  std <- data %>% 
+    sd() %>%
+    unname()
+  mean <- data %>% 
+    mean() %>%
+    unname() %>%
+    abs()
+  sample_coef <- std/mean
+  
+  return(sample_coef)
+} 
 
+# execute function getIQR on all_wine$fixed_acidity
+getCoefVar(all_wine$fixed_acidity)
+
+# execute function getIQR on all_wine$fixed_acidity
+getCoefVar(all_wine$citric_acid)
+
+# write Function getSummaries
+getSummaries <- function(data){
+  
+}
 ```
