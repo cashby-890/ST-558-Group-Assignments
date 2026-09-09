@@ -23,11 +23,19 @@ setseed(123)
 
 ## Question 1
 
+The relative path to use is "../Mydata.csv" as this will go back 1 folder level from the working directory location.
+
 ## Question 2
+
+.Rproj files are useful as they create self-contained and easily portable workspaces for data analysis work flows. it can reduce the need to hardcode things like the working directory, can easily be shared through entire project folders with various collaborators, and has built in version control.
 
 ## Question 3
 
+Git is a version control software, GitHub is an online hosting service that specializes in Git-based projects.
+
 ## Question 4
+
+Tibbles are a modern re-imagining of a data frame. They do less and complain more leading to problems being confronted early on in development, leading to cleaner and more expressive code.
 
 # Task 2
 
