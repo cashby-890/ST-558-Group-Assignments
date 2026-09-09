@@ -9,19 +9,19 @@ editor: visual
 
 1.  If your Working directory is `myfolder/homework/`, what relative path would you specify to get the file located at `myfolder/MyData.csv`?
 
--   
+-   You can use a shortcut to access the working directory via `../myfolder/MyData.csv`. This allows you to move up one level in the working directory.
 
 2.  What are the major benefits of R projects?
 
--   
+-   R projects allow collaborators to work on their own tasks individually by keeping analyses separate. If need be, you can also switch between projects.
 
 3.  What is `Git` and what is `GitHub`?
 
--   
+-   `Git` is a type of version control software that allows multiple users to work on the same project placed within a repository and tracks any changes made to files. `Github` is an online hosting service for any `Git`-based projects.
 
 4.  What are the two main differences between a `tibble` and a `data.frame`?
 
--   
+-   A `data.frame` is a straight-forward collection of vectors of the same length, but can have different types. Names can easily be assigned to these vectors and certain elements can be accessed via `[ , ]` or `$`. A `tibble` has a lot of similarities to a `data.frame` except the display of a `tibble` only shows a handful of rows and provides more details about the variables in the data set; it's also easier to rename things with a `tibble`. However, whenever an error occurs, a `tibble` will notify you unlike a `data.frame`.
 
 # Task Two: Reading Delimited Data
 
@@ -76,21 +76,27 @@ install.packages("readxl")
 library(readxl)
 ```
 
-This time around, we'll read in a couple of files pertaining to the red and white variants of the Portuguese Vinho Verde wine. The first one, consisting of the white wines, is an Excel file which has two sheets. The first one consists of the data itself while the second has the list of variable names.
+This time around, we'll read in a couple of files pertaining to both red and white wines. The first one, consisting of the white wines, is an Excel file which has two sheets. The first one consists of the data itself while the second has the list of variable names. The data itself is read in below.
 
 ```{r}
 white_wine=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=1)
 white_wine
 ```
 
+The desired column names can be accessed as follows.
+
 ```{r}
 white_wine_colnames=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=2)
-colnames(White_wine)=white_wine_colnames$Variables
+colnames(white_wine)=white_wine_colnames$Variables
 ```
+
+We can also insert a column that specifies the type of wine.
 
 ```{r}
 white_wine$type="white"
 ```
+
+We follow a similar process for the data set involving the red wines; however, the delimiter is different and we'll need to apply the column names from the previous data set here.
 
 ```{r}
 red_wine<-read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",delim=";")
@@ -98,11 +104,15 @@ colnames(red_wine)<-white_wine_colnames$Variables
 red_wine$type="red"
 ```
 
+Now with both data sets read in, we can combine them using a function from the `dplyr` package.
+
 ```{r}
 all_wines=dplyr::bind_rows(white_wine,red_wine)
 ```
 
 # Task Four: Writing a Function
+
+At this point, we can begin practice with writing functions. First, we'll create a function that calculates the interquartile range of a numeric vector. Safeguards have been included to ensure that a numeric vector is the only acceptable type of input
 
 ```{r}
 getIQR <- function(input){
@@ -115,7 +125,14 @@ getIQR <- function(input){
 }
 ```
 
-Test IQR function on fixed_acidity and citric_acid for combined wine data set
+Let's try this function out on the combined wines data set.
+
+```{r}
+getIQR(all_wines$fixed_acidity)
+getIQR(all_wines$citric_acid)
+```
+
+Next, we'll create another function that calculates the coefficient of variation for a numeric vector.
 
 ```{r}
 getCoefVar <- function(input){
@@ -128,7 +145,14 @@ getCoefVar <- function(input){
 }
 ```
 
-Test CoefVar function on fixed_acidity and citric_acid for combined wine data set
+Let's make sure this one works, too.
+
+```{r}
+getCoefVar(all_wines$fixed_acidity)
+getCoefVar(all_wines$citric_acid)
+```
+
+We can create another function that incorporates both of these custom-made functions, too.
 
 ```{r}
 getSummaries <- function(input){
@@ -141,17 +165,28 @@ getSummaries <- function(input){
 }
 ```
 
-Test Summaries function on fixed_acidity and citric_acid for combined wine data set
+Now, we can test this wrapper function to see if it works as it should.
+
+```{r}
+getSummaries(all_wines$fixed_acidity)
+getSummaries(all_wines$citric_acid)
+```
+
+One last thing: even though a function that combines columns exists already, we can create our own infix function that performs this exact operation.
 
 ```{r}
 `%attach%` <- function(x,y) cbind(x,y) 
 ```
+
+Here are a few random data frames and vectors that we can try this infix function out on.
 
 ```{r}
 df1 <- data.frame(unif=runif(10),norm=rnorm(10))
 df2 <- data.frame(gamma=rgamma(10,1),beta=rbeta(10,5,2))
 vec1 <- rnorm(10,10)
 ```
+
+Let's try the infix function and see what happens!
 
 ```{r}
 df1 %attach% df2
