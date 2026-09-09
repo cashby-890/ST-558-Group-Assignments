@@ -1,5 +1,5 @@
 ---
-title: "Riley_HW3"
+title: "Group4_HW3"
 format: html
 ---
 
@@ -111,6 +111,7 @@ redWine$type <- 'red'
 Combine the two data sets:
 ```{r}
 wine <- bind_rows(whiteWine, redWine)
+wine
 ```
 
 
@@ -125,6 +126,7 @@ getIQR <- function(inputVector) {
   if(!is.vector(inputVector) | !is.numeric(inputVector)){
     stop('Input must be a numeric vector.')
   }
+  # Subtract the 25th percentile from the 75th percentile
   unname(quantile(inputVector)[4] - quantile(inputVector)[2])
 }
 ```
