@@ -14,11 +14,16 @@ Task 1: Conceptual Questions
 
 1. Rewrite the following nested function call using baseR’s chaining operator:
 ```{r}
+#| echo: false
+#| output: false
+# Load required packages
 library(tidyverse)
-# arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Length <
-# 1.55), Species)
 ```
-  A) 
+
+```{r}
+arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Length < 1.55), Species)
+```
+   A) 
 ```{r}
 iris |>
   as_tibble() |>
@@ -28,8 +33,7 @@ iris |>
 ```
   
 2. What is meant by long format data and wide format data? Which do we generally prefer for statistical analysis?
-  A) Long format data means that each observation has only one data value, while
-  wide format data means that a single observation can have multiple data values. Long formt data is generally preferred for statistical analysis.
+   A) Long format data means that each observation has only one data value, while wide format data means that a single observation can have multiple data values. Long formt data is generally preferred for statistical analysis.
 
 
 Task 2: 
@@ -43,7 +47,7 @@ Read in the glass data and assign variable names:
 glass <- read_delim('https://www4.stat.ncsu.edu/~online/datasets/glass.data', 
                        delim = ',',
                        col_names = c('Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'glassType')
-)
+                    )
 ```
 
 Manipulate the 'glass' data object by creating a new column with 'glass type' as a factor, then filtering to only retain observations where iron weight percent is less than 0.2 and glass type is either 'tableware' or 'headlamp':
@@ -63,7 +67,7 @@ Read in the yeast data and assign variable names:
 ```{r}
 yeast <- read_table('https://www4.stat.ncsu.edu/~online/datasets/yeast.data',
                     col_names = c('seq_name', 'mcg', 'gvh', 'alm', 'mit', 'erl', 'pox', 'vac', 'nuc', 'class')
-)
+                    )
 ```
 
 Manipulate the 'yeast' data object by removing the variables 'seq_name' and 'nuc', then add columns corresponding to the mean and median of each numeric variable at each class grouping:
@@ -119,7 +123,7 @@ Combine the two data sets:
 wine <- bind_rows(whiteWine, redWine)
 ```
 
-Manipulate the 'wine' data object by filtering for high-quality wines that have a reasonable alcohol value, selecting a subset of the variables, and creating mean and standard deviation columns of the 'alcohol' variable for each value of the 'quality' variable
+Manipulate the 'wine' data object by filtering for high-quality wines that have a reasonable alcohol value, selecting a subset of the variables, and creating mean and standard deviation columns of the 'alcohol' variable for each value of the 'quality' variable:
 ```{r}
 wine |>
   filter(quality > 6.5, alcohol < 13.2) |>
@@ -188,6 +192,7 @@ hallPlayers <- inner_join(tbl(con, 'HallOfFame') |>
                           by = join_by(playerID == playerID)
                           ) |>
   collect()
+hallPlayers
 ```
 
 Return the 'playerID' (managerID), 'G', 'W', and 'L' columns from the 'Managers' table, then determine the overall win/loss record, then create a new variable that is the career win/loss percentage, and finally sort the resulting data by the win/loss percentage (descending):
@@ -201,6 +206,7 @@ mngrs <- tbl(con, 'Managers') |>
   collect() |>
   mutate(wlPercent = Total_W / G_managed) |>
   arrange(desc(wlPercent))
+mngrs
 ```
 
 Return information for only the people that managed a team and were inducted into the hall of fame using the results from the previous sections:
@@ -208,5 +214,10 @@ Return information for only the people that managed a team and were inducted int
 inner_join(hallPlayers, mngrs,
            by = join_by(playerID == playerID))
 
+```
+
+Disconnect from the database:
+```{r}
+dbDisconnect(con)
 ```
 
