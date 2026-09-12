@@ -182,6 +182,43 @@ tbl(con, 'HallOfFame') |>
   collect()
 ```
 
+```{r}
+tbl(con, 'People') |>
+  filter(is.na(nameLast)) |>
+  select(c(playerID, nameFirst, nameLast)) |>
+  collect()
+
+setdiff(inner_join(tbl(con, 'HallOfFame') |>
+                            filter(inducted == 'Y') |>
+                            select(playerID),
+                          tbl(con, 'People') |>
+                            select(playerID),
+                          by = join_by(playerID == playerID)
+                          )  |>
+  collect(),
+        tbl(con, 'HallOfFame') |>
+  filter(inducted == 'Y') |>
+  select(playerID) |>
+  collect()
+  
+)
+
+
+hallNoJoin <- tbl(con, 'HallOfFame') |>
+  filter(inducted == 'Y') |>
+  select(c(playerID, yearID, category)) |>
+  collect()
+
+setdiff(hallNoJoin$playerID, hallPlayers$playerID)
+
+tbl(con, 'People') |>
+  filter(playerID == 'fowlebu99') |>
+  select(c(playerID, nameFirst, nameLast)) |>
+  collect()
+
+```
+
+
 Combine the previous table with the 'People' table in order to have the first and last names added to what was returned above:
 ```{r}
 hallPlayers <- inner_join(tbl(con, 'HallOfFame') |>
@@ -194,6 +231,8 @@ hallPlayers <- inner_join(tbl(con, 'HallOfFame') |>
   collect()
 hallPlayers
 ```
+*The joined data object has two fewer observations than the original 'HallOfFame' table because they are not in the 'People' table. The observations missing from the 'People' table are player ID's 'millema99' and 'fowlebu99'.*
+
 
 Return the 'playerID' (managerID), 'G', 'W', and 'L' columns from the 'Managers' table, then determine the overall win/loss record, then create a new variable that is the career win/loss percentage, and finally sort the resulting data by the win/loss percentage (descending):
 ```{r}
