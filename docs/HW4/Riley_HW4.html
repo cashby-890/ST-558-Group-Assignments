@@ -528,6 +528,7 @@ WHERE (`yearID` = 2015.0)</code></pre>
 # ℹ 328 more rows</code></pre>
 </div>
 </div>
+<p><em>The joined data object has two fewer observations than the original ‘HallOfFame’ table because they are not in the ‘People’ table. The observations missing from the ‘People’ table are player ID’s ‘millema99’ and ‘fowlebu99’.</em></p>
 <p>Return the ‘playerID’ (managerID), ‘G’, ‘W’, and ‘L’ columns from the ‘Managers’ table, then determine the overall win/loss record, then create a new variable that is the career win/loss percentage, and finally sort the resulting data by the win/loss percentage (descending):</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>mngrs <span class="ot">&lt;-</span> <span class="fu">tbl</span>(con, <span class="st">'Managers'</span>) <span class="sc">|&gt;</span></span>

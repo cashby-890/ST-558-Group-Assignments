@@ -182,43 +182,6 @@ tbl(con, 'HallOfFame') |>
   collect()
 ```
 
-```{r}
-tbl(con, 'People') |>
-  filter(is.na(nameLast)) |>
-  select(c(playerID, nameFirst, nameLast)) |>
-  collect()
-
-setdiff(inner_join(tbl(con, 'HallOfFame') |>
-                            filter(inducted == 'Y') |>
-                            select(playerID),
-                          tbl(con, 'People') |>
-                            select(playerID),
-                          by = join_by(playerID == playerID)
-                          )  |>
-  collect(),
-        tbl(con, 'HallOfFame') |>
-  filter(inducted == 'Y') |>
-  select(playerID) |>
-  collect()
-  
-)
-
-
-hallNoJoin <- tbl(con, 'HallOfFame') |>
-  filter(inducted == 'Y') |>
-  select(c(playerID, yearID, category)) |>
-  collect()
-
-setdiff(hallNoJoin$playerID, hallPlayers$playerID)
-
-tbl(con, 'People') |>
-  filter(playerID == 'fowlebu99') |>
-  select(c(playerID, nameFirst, nameLast)) |>
-  collect()
-
-```
-
-
 Combine the previous table with the 'People' table in order to have the first and last names added to what was returned above:
 ```{r}
 hallPlayers <- inner_join(tbl(con, 'HallOfFame') |>
