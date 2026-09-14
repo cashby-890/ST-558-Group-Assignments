@@ -14,6 +14,8 @@ editor: visual
 library(tidyverse)
 library(readxl)
 library(readr)
+library(DBI)
+library(RSQLite)
 
 
 # Set seed for random data creation for replicability
@@ -32,6 +34,8 @@ as_tibble(iris) %>%
 ```
 
 ## Q2
+
+Long vs Wide data is a description on how a data table is created and stored. Long tables are built in a vertical sense, where each column indicates a different variable or parameter and each row represents 1 observation of data associated with some category of identifying variables and results. Wide tables are built in a horizontal sense, where each column instead indicates one observation of data and rows indicate the categorizing variables and resulting data information.
 
 # Task 2
 
@@ -143,5 +147,72 @@ all_wine
 # Task 3
 
 ```{r}
+#Connect to database use DBI package
+con <- dbConnect(RSQLite::SQLite(), "~/ST558/ST-558-Group-Assignments/Data/HW4/lahman.db")
 
+#display tables
+dbListTables(con)
+
+#return all data from teams of 2015 year
+teams2015 <- tbl(con,"Teams") %>% #select teams from year 2015
+              filter( yearID == 2015 ) %>% #collect
+               collect()
+
+#display results
+teams2015
+
+#do the same with SQL
+teams2015_v2 <- tbl(con,  
+                    sql("select * from Teams where yearID = 2015")
+                    ) %>%
+                      collect()
+
+
+#display results
+teams2015_v2
+
+#Return all HoF players.
+hall_of_fame <- tbl(con,  
+                    sql("select playerID, yearID, category Year from HallOfFame")
+                    ) %>%
+                      collect()
+
+
+#display results
+hall_of_fame
+
+#join Hall of famer tables with players table.
+#okay admitely I'm probably going a little beyond scope rn of what we've learned
+#in class, but I use SQL with SAS for work a ton so I wanted to do some testing
+#on it's capabilities. I'd be really interested in learning how to use SQL to 
+#do this kind of handling on objects in the R environment!
+Players_HoF <- tbl(con,  
+                   sql("select a.nameFirst, a.nameLast, b.playerID, b.yearID, 
+                        b.category 
+                          from People as a
+                            inner join HallOfFame as b
+                              on a.playerID=b.playerID")
+                    ) %>%
+                      collect()
+
+#display results
+Players_HoF
+
+#return manager ID 
+manager_winLoss <- tbl(con, "Managers") |>
+                    select(playerID, G, W, L) |>
+                    group_by(playerID) |>
+                    summarize(G_managed = sum(G, na.rm = TRUE),
+                              Total_W = sum(W, na.rm = TRUE),
+                              Total_L = sum(L, na.rm = TRUE)) |> 
+                    collect() |>
+                    mutate('Total_W/G_managed' = Total_W / G_managed) |>
+                    arrange(desc(Total_W/G_managed))
+
+manager_winLoss
+
+#Return information for only the
+#people that managed a team and were inducted into the hall of fame
+manager_HoF <- inner_join(Players_HoF, manager_winLoss, by = "playerID")
+manager_HoF
 ```
