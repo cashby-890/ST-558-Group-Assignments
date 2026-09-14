@@ -1,0 +1,195 @@
+---
+title: "Exam Prep, Reading Delimited Data, and Writing Functions"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+# Task One: Conceptual Questions
+
+1.  If your Working directory is `myfolder/homework/`, what relative path would you specify to get the file located at `myfolder/MyData.csv`?
+
+-   You can use a shortcut to access the working directory via `../myfolder/MyData.csv`. This allows you to move up one level in the working directory.
+
+2.  What are the major benefits of R projects?
+
+-   R projects allow collaborators to work on their own tasks individually by keeping analyses separate. If need be, you can also switch between projects.
+
+3.  What is `Git` and what is `GitHub`?
+
+-   `Git` is a type of version control software that allows multiple users to work on the same project placed within a repository and tracks any changes made to files. `Github` is an online hosting service for any `Git`-based projects.
+
+4.  What are the two main differences between a `tibble` and a `data.frame`?
+
+-   A `data.frame` is a straight-forward collection of vectors of the same length, but can have different types. Names can easily be assigned to these vectors and certain elements can be accessed via `[ , ]` or `$`. A `tibble` has a lot of similarities to a `data.frame` except the display of a `tibble` only shows a handful of rows and provides more details about the variables in the data set; it's also easier to rename things with a `tibble`. However, whenever an error occurs, a `tibble` will notify you unlike a `data.frame`.
+
+# Task Two: Reading Delimited Data
+
+Here we'll practice reading in data sets from the UCI machine learning repository using functions from the `tidyverse`. Namely, we'll use the `readr` package. Before doing so, let's install the package first and then load it so we can utilize the functions associated with it.
+
+```{r}
+#Install the readr package if not already.
+#install.packages("readr")
+
+#After installation, we'll load the package so we can actually use it.
+
+library(readr)
+```
+
+## Glass Data
+
+Now, we can read in our first data set, which is a standard csv file.
+
+```{r}
+glass.data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+                       col_names=c("ID","Refrac_Index","Na","Mg","Al","Si","K","Ca","Ba","Fe",
+                                   "Type_of_Glass"))
+```
+
+We can simply call the object to get the `tibble`.
+
+```{r}
+glass.data
+```
+
+## Yeast Data
+
+Our second data set appears to be tab-delimited, but each column is actually separated by two spaces. We'll use the generic `read_table()` command in this case.
+
+```{r}
+yeast.data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
+                         col_names=c("seq_name","mcg","gvh","alm","mit","erl","pox","vac","nuc",
+                                     "class"))
+```
+
+As before, we'll print out the `tibble` by calling the object.
+
+```{r}
+yeast.data
+```
+
+# Task Three: Combining Excel and Delimited Data
+
+Since we'll be reading in an Excel file, we'll need to install and upload the `readxl` package.
+
+```{r}
+#install.packages("readxl")
+library(readxl)
+```
+
+This time around, we'll read in a couple of files pertaining to both red and white wines. The first one, consisting of the white wines, is an Excel file which has two sheets. The first one consists of the data itself while the second has the list of variable names. The data itself is read in below.
+
+```{r}
+white_wine=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=1)
+white_wine
+```
+
+The desired column names can be accessed as follows.
+
+```{r}
+white_wine_colnames=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=2)
+colnames(white_wine)=white_wine_colnames$Variables
+```
+
+We can also insert a column that specifies the type of wine.
+
+```{r}
+white_wine$type="white"
+```
+
+We follow a similar process for the data set involving the red wines; however, the delimiter is different and we'll need to apply the column names from the previous data set here.
+
+```{r}
+red_wine<-read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",delim=";")
+colnames(red_wine)<-white_wine_colnames$Variables
+red_wine$type="red"
+```
+
+Now with both data sets read in, we can combine them using a function from the `dplyr` package.
+
+```{r}
+all_wines=dplyr::bind_rows(white_wine,red_wine)
+```
+
+# Task Four: Writing a Function
+
+At this point, we can begin practice with writing functions. First, we'll create a function that calculates the interquartile range of a numeric vector. Safeguards have been included to ensure that a numeric vector is the only acceptable type of input
+
+```{r}
+getIQR <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  upper_quart=quantile(input)[[4]]
+  lower_quart=quantile(input)[[2]]
+  return(unname(upper_quart - lower_quart))
+}
+```
+
+Let's try this function out on the combined wines data set.
+
+```{r}
+getIQR(all_wines$fixed_acidity)
+getIQR(all_wines$citric_acid)
+```
+
+Next, we'll create another function that calculates the coefficient of variation for a numeric vector.
+
+```{r}
+getCoefVar <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  stdev=sd(input)
+  mag_mean=abs(mean(input))
+  return(unname(stdev/mag_mean))
+}
+```
+
+Let's make sure this one works, too.
+
+```{r}
+getCoefVar(all_wines$fixed_acidity)
+getCoefVar(all_wines$citric_acid)
+```
+
+We can create another function that incorporates both of these custom-made functions, too.
+
+```{r}
+getSummaries <- function(input){
+  if(!is.vector(input) | !is.numeric(input)){
+    stop("This is NOT a numeric vector!")
+  }
+  IQ_range <- getIQR(input)
+  CV <- getCoefVar(input)
+  return(list(IQ_range,CV))
+}
+```
+
+Now, we can test this wrapper function to see if it works as it should.
+
+```{r}
+getSummaries(all_wines$fixed_acidity)
+getSummaries(all_wines$citric_acid)
+```
+
+One last thing: even though a function that combines columns exists already, we can create our own infix function that performs this exact operation.
+
+```{r}
+`%attach%` <- function(x,y) cbind(x,y) 
+```
+
+Here are a few random data frames and vectors that we can try this infix function out on.
+
+```{r}
+df1 <- data.frame(unif=runif(10),norm=rnorm(10))
+df2 <- data.frame(gamma=rgamma(10,1),beta=rbeta(10,5,2))
+vec1 <- rnorm(10,10)
+```
+
+Let's try the infix function and see what happens!
+
+```{r}
+df1 %attach% df2
+df1 %attach% df2 %attach% vec1
+```
