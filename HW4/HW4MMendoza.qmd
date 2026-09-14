@@ -124,10 +124,19 @@ all_wine <- dplyr::bind_rows(list(red_wine, white_wine)) %>%
     arrange(desc(quality)) %>% 
       #select spec variables
       select(contains("acid"), alcohol, type, quality) %>%
-        #group
+        #group by quality
+        group_by(quality) %>%
+          mutate(
+            across(
+              c(alcohol), 
+              list(
+                mean = ~mean(.x, na.rm = TRUE), 
+                median = ~median(.x, na.rm = TRUE)
+              )
+            )
+          )
       
-      
-
+all_wine      
                               
 ```
 
