@@ -62,7 +62,7 @@ yeast_data
 
 ```
 
-# Task 3 
+# Task 3
 
 ```{r}
 # This code reads the excel data for white Wine

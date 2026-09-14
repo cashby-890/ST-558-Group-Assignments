@@ -1,0 +1,28 @@
+---
+title: "Homework 4"
+author: "Michael Mendoza"
+format: html
+editor: visual
+---
+
+# Task 1
+
+## Q1
+
+```{r}
+
+```
+
+## Q2
+
+# Task 2
+
+```{r}
+
+```
+
+# Task 3
+
+```{r}
+
+```
