@@ -8,6 +8,7 @@ editor: visual
 #Install Packages if Needed
 #install.packages("tidyverse")
 #install.packages("readxl")
+#install.packages("RSQLite")
 ```
 
 #### Task 1: Conceptual Questions
@@ -208,8 +209,9 @@ wine_summary <- wine |>
     mean_alcohol = mean(alcohol, na.rm = TRUE),
     sd_alcohol = sd(alcohol, na.rm = TRUE)
   )
-```
 
+wine_summary
+```
 
 #### Task 3: Databse Practice
 
@@ -217,16 +219,113 @@ Download the Lahman.db file associated with the Connecting to Databases notes/vi
 
 11. Connect to the database and then look at all of the tables in the database.
 
+```{r}
+library(RSQLite)
+con <- dbConnect(
+  RSQLite::SQLite(), '../Data/HW4/lahman.db'
+  )
+
+dbListTables(con)
+```
+
 12. Use the tbl() function and dplyr to return all of the data from the Teams table for the year 2015.
+
+```{r}
+teams_2015 <- tbl(con, "Teams") |>
+  filter(yearID == 2015) |>
+  collect()
+
+teams_2015
+```
+
 
 13. Repeat the above by using the sql() function within tbl() (here you have to write actual SQL)
 
-#### Either use dplyr or write SQL queries for the rest of these quesgit tions.
+```{r}
+teams_2015_sql <- tbl(
+  con,
+  sql(
+    "SELECT *
+    FROM Teams
+    WHERE yearID = 2015"
+  )
+) |>
+  collect()
+
+teams_2015_sql
+```
+
+#### Either use dplyr or write SQL queries for the rest of these questions.
 
 14. Return all of the players in the hall of fame, the year they were voted into the hall of fame, and their category (only those three variables). See the HallOfFame table, the inducted variable is important here.
 
+```{r}
+hall_of_fame <- tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(
+    playerID, yearID, category
+  ) |>
+  collect()
+
+hall_of_fame
+```
+
 15. Combine the table from the previous question with the People table in order to have the nameFirst and nameLast names added to what was returned above.
+
+```{r}
+people <- tbl(con, "People") |>
+  select(
+    playerID,
+    nameFirst,
+    nameLast
+  )
+hall_of_fame_players <- tbl(con, "HallOfFame") |>
+  filter(inducted == "Y") |>
+  select(
+    playerID, yearID, category
+  ) |>
+  left_join(
+    people, by = "playerID"
+  ) |>
+  collect()
+
+hall_of_fame_players
+```
 
 16. Return only the playerID (manager ID), G, W, and L columns from the Managers table. Use chaining to then determine the overall win/loss records (sum of wins & sum of losses) for each of these hall of fame managers using group_by() with summarize() rather than mutate. Create a new variable that is the career win/loss percentage as column Total_W/G_managed. Sort the resulting data by the win/loss percentage variable (from largest to smallest).
 
+```{r}
+manager_summary <- tbl(con, "Managers") |>
+  select(
+    playerID, G, W, L
+  ) |>
+  group_by(playerID) |>
+  summarize(
+    G_managed = sum(G, na.rm = TRUE),
+    Total_W = sum(W, na.rm = TRUE),
+    Total_L = sum(L, na.rm = TRUE)
+  ) |>
+  collect()
+
+manager_summary <- manager_summary |>
+  mutate(
+    win_loss_pct = Total_W / G_managed
+  ) |>
+  arrange(desc(win_loss_pct))
+
+manager_summary
+```
+
 17. Use the results from the previous two questions to answer this one! Return information for only the people that managed a team and were inducted into the hall of fame (regardless of their category in the hall of fame - you want to return all people in the hall of fame that ever managed at all). (Just return all of the variables from both of the above two questions - 9 total columns
+
+```{r}
+hall_of_fame_managers <- hall_of_fame_players |>
+  inner_join(
+    manager_summary,
+    by = "playerID"
+  )
+
+hall_of_fame_managers
+```
+
+dbDisconnect(con)
