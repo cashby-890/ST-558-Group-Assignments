@@ -5,12 +5,30 @@ format: html
 editor: visual
 ---
 
+# Setup/Misc.
+
+```{r}
+#| echo: false
+
+# Librarys Required
+library(tidyverse)
+library(readxl)
+library(readr)
+
+
+# Set seed for random data creation for replicability
+set.seed(123)
+```
+
 # Task 1
 
 ## Q1
 
 ```{r}
-
+as_tibble(iris) %>%
+  select( starts_with("Petal"), Species ) %>%
+        filter( Petal.Length < 1.55 ) %>% 
+         arrange(  Species )
 ```
 
 ## Q2
@@ -18,7 +36,99 @@ editor: visual
 # Task 2
 
 ```{r}
+# This code loads the glass.data file from URL with comma (,) Delimiter
+glass_data <- 
+  read_delim(
+    "https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+    delim=",",
+    col_names=c("Id", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe",
+                "Glass_Type")
+) %>% #create Glass type as factor text variable
+        mutate(
+          Glass_Type = factor( Glass_Type,
+          levels = c(1, 2, 3, 5, 6, 7),
+          labels = 
+                   c("building_windows_float_processed",
+                     "building_windows_non_float_processed",
+                     "vehicle_windows_float_processed",
+                     "containers", "tableware", "headlamps")
+          ) 
+          ) %>% #Filter data to Fe < 0.2 and select only types
+                filter(
+                  Fe < 0.2,
+                  Glass_Type %in% c("tableware", "headlamps")
+                  )
 
+#print final dataset                         
+glass_data                          
+
+# This code reads in the yeast data from the URL
+yeast_data <-  read_table(
+  "https://www4.stat.ncsu.edu/~online/datasets/yeast.data", 
+  col_names=c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox",
+              "vac", "nuc", "class")
+) %>% #select to remove specified columns
+    select( -seq_name, -nuc ) %>% #group for mean/median derivation
+      group_by(class)  %>% #mutate to create specified columns using across()
+        mutate(
+          across(
+            c(mcg, gvh, alm, mit, erl, pox, vac), 
+            list(
+            mean = ~mean(.x, na.rm = TRUE), 
+            median = ~median(.x, na.rm = TRUE)
+            )
+            )
+        )
+
+#print final dataset                                
+yeast_data     
+
+# CREATE ALL_WINE DATASET AND BEGIN PIPING (copied from HW3)
+  # This code reads the excel data for white Wine
+  white_wine <- read_excel(
+    "~/ST558/ST-558-Group-Assignments/Data/HW3/white-wine.xlsx",
+    sheet=1
+  )
+  
+  # this code creates a tibble of the excel sheet names.
+  white_wine_names <- read_excel(
+    "~/ST558/ST-558-Group-Assignments/Data/HW3/white-wine.xlsx",
+    sheet=2
+  )
+  
+  # assigning the column names of the white_wine dataset with the
+  # string from white_wine_names
+  colnames(white_wine) <- white_wine_names$Variables
+  
+  # assign White to the list of wines using mutate
+  white_wine <- mutate(white_wine, type = "white")
+  
+  # This code reads in the red wine .CSV semicolon (;) delimited file,
+  # assigns colnames, and assigns variable type a value of red
+  red_wine <- read_delim(
+    "https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",
+    delim=";",
+    col_names=c("fixed_acidity", "volatile_acidity", "citric_acid", 
+                "residual_sugar", "chlorides", "free_sulfur_dioxide", 
+                "total_sulfur_dioxide", "density", "pH", "sulphates", 
+                "alcohol", "quality"),
+    skip = 1
+  ) %>% mutate(type = "red")
+
+# Start Chaining/Piping of all_wine after merging wine datasets together
+# combine white_wine and red_wine datasets using dply::bind_rows()
+all_wine <- dplyr::bind_rows(list(red_wine, white_wine)) %>%
+  #Filter data per specs.
+  filter( quality > 6.5 & alcohol < 13.2) %>% 
+    #sort data by desc quality
+    arrange(desc(quality)) %>% 
+      #select spec variables
+      select(contains("acid"), alcohol, type, quality) %>%
+        #group
+      
+      
+
+                              
 ```
 
 # Task 3

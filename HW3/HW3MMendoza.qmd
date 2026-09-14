@@ -16,7 +16,7 @@ library(readxl)
 library(readr)
 
 # Set seed for random data creation for replicability
-setseed(123)
+set.seed(123)
 ```
 
 # Task 1
@@ -67,7 +67,7 @@ yeast_data
 ```{r}
 # This code reads the excel data for white Wine
 white_wine <- read_excel(
-  "~/ST558/ST-558-Group-Assignments/HW3/white-wine.xlsx",
+  "~/ST558/ST-558-Group-Assignments/Data/HW3/white-wine.xlsx",
   sheet=1
   )
 
@@ -75,7 +75,7 @@ white_wine
 
 # this code creates a tibble of the excel sheet names.
 white_wine_names <- read_excel(
-  "~/ST558/ST-558-Group-Assignments/HW3/white-wine.xlsx",
+  "~/ST558/ST-558-Group-Assignments/Data/HW3/white-wine.xlsx",
   sheet=2
   )
 
