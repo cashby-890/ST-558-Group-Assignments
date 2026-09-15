@@ -1,0 +1,236 @@
+---
+title: "Practice with Chaining and SQL"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+## Task One: Conceptual Questions
+
+1.  Rewrite the following nested function call using `baseR`'s chaining operator:
+
+```{r}
+library(tidyverse)
+arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), 
+               Petal.Length < 1.55), Species)
+```
+
+-   Using the pipe operator `|>`, we get:
+
+```{r}
+as_tibble(iris) |>
+  select(starts_with("Petal"),Species) |>
+  filter(Petal.Length < 1.55) |>
+  arrange(Species)
+```
+
+2.  What is meant by long format data and wide format data? Which do we generally prefer for statistical analysis?
+
+-   Long format data is organized where each row has exactly one observation and each column has exactly one variable; on the other hand, wide format data tends to be organized with multiple observations per row. For the purposes of statistical analysis, long format data is generally preferred so that results can be communicated in a clearer manner via summaries, plots, and models. 
+
+## Task Two: Practice with Chaining!
+
+Before we begin, let's make sure all appropriate packages have been installed and/or loaded.
+
+```{r}
+library(tidyverse)
+install.packages("dbplyr")
+library(dplyr)
+library(readr)
+library(readxl)
+library(dbplyr)
+```
+
+Let's read in the data sets from the previous assignment; we'll start with the glass data.
+
+```{r}
+glass.data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data",
+                       col_names=c("ID","Refrac_Index","Na","Mg","Al","Si","K","Ca","Ba","Fe",
+                                   "Type_of_Glass"))
+```
+
+We'll start a chain by replacing the last column with it's associated labels using the `mutate()` function.
+
+```{r}
+glass.data |>
+  mutate(Desc_of_Glass=factor(Type_of_Glass,levels=c(1,2,3,4,5,6,7),
+                              labels=c("building_windows_float_processed",
+                                       "building_windows_non_float_processed",
+                                       "vehicle_windows_float_processed",
+                                       "vehicle_windows_non_float_processed",
+                                       "containers","tableware","headlamps"))) |>
+  select(-Type_of_Glass)
+```
+
+Next, we'll continue the chain by filtering as described below.
+
+```{r}
+glass.data |>
+  mutate(Desc_of_Glass=factor(Type_of_Glass,levels=c(1,2,3,4,5,6,7),
+                              labels=c("building_windows_float_processed",
+                                       "building_windows_non_float_processed",
+                                       "vehicle_windows_float_processed",
+                                       "vehicle_windows_non_float_processed",
+                                       "containers","tableware","headlamps"))) |>
+  select(-Type_of_Glass) |>
+  filter(Fe < 0.2,Desc_of_Glass %in% c("tableware","headlamps") )
+```
+
+Let's read in the second data set.
+
+```{r}
+yeast.data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data",
+                         col_names=c("seq_name","mcg","gvh","alm","mit","erl","pox","vac","nuc",
+                                     "class"))
+```
+
+Here, we want all but the sequence name and nuc columns.
+
+```{r}
+yeast.data |>
+  select(-c(seq_name,nuc))
+```
+
+Let's find the mean and median of all the numeric variables, grouped by class.
+
+```{r}
+yeast.data |>
+  select(-c(seq_name,nuc)) |>
+  group_by(class) |>
+  summarize(across(where(is.numeric),c(mean,median)))
+```
+
+Lastly, we'll read in those wine data sets and work with the combined result shown below:
+
+```{r}
+white_wine=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=1)
+white_wine_colnames=read_excel("C:/Users/cashb/Downloads/white-wine.xlsx",sheet=2)
+colnames(white_wine)=white_wine_colnames$Variables
+white_wine$type="white"
+red_wine<-read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv",delim=";")
+colnames(red_wine)<-white_wine_colnames$Variables
+red_wine$type="red"
+all_wines=dplyr::bind_rows(white_wine,red_wine)
+```
+Here's the start of a chain that filters by criterion placed on quality and alcohol content.
+
+```{r}
+all_wines |>
+  filter(quality > 6.5,alcohol < 13.2)
+```
+
+An addition of sorting by descending quality, so the best wines are first! 
+
+```{r}
+all_wines |>
+  filter(quality > 6.5,alcohol < 132) |>
+  arrange(desc(quality))
+```
+
+We'll start narrowing this down by selecting only a handful of variables.
+
+```{r}
+all_wines |>
+  filter(quality > 6.5,alcohol < 132) |>
+  arrange(desc(quality)) |>
+  select(contains("acid"),alcohol,type,quality)
+```
+
+Finishing the chain is finding the mean and standard deviation of the alcohol content, grouped by quality.
+
+```{r}
+all_wines |>
+  filter(quality > 6.5,alcohol < 132) |>
+  arrange(desc(quality)) |>
+  select(contains("acid"),alcohol,type,quality) |>
+  group_by(quality) |>
+  mutate(alcohol_mean = mean(alcohol),
+         alcohol_stdev = sd(alcohol))
+```
+
+## Task Three: Database Practice
+
+In order to access databases, we need to install any necessary packages and upload them for use:
+
+```{r}
+install.packages("RSQLite")
+library(DBI)
+```
+
+Now, we'll establish a connection to the `Lahman` database.
+
+```{r}
+con=dbConnect(RSQLite::SQLite(),"C:/Users/cashb/Downloads/lahman.db")
+```
+
+The list od tables from this database is shown below.
+
+```{r}
+dbListTables(con)
+```
+Next, we'll use functions in `dplyr` to display all entries from the `Teams` table where the year is 2015.
+
+```{r}
+tbl(con,"Teams") |>
+  filter(yearID==2015) |>
+  collect()
+```
+
+Here's another way of doing the same task using an SQL statement.
+
+```{r}
+tbl(con,sql(
+  "SELECT 'Teams'.*
+   FROM 'Teams'
+   WHERE (yearID = 2015.0)")
+) |>
+  collect()
+```
+
+Let's start collecting some info about Hall of Famers! Below is a collection of those that were inducted to the Hall of Fame, as well as the year of induction and what role each person had.
+
+```{r}
+tbl(con,"HallOfFame") |>
+  select(inducted,yearID,category) |>
+  filter(inducted=="Y") |>
+  collect()
+```
+
+Let's put some names to those inductees by borrowing information from the `People` table. This is saved as an object for future use.
+
+```{r}
+HOF_table=left_join(tbl(con,"HallOfFame") |>  filter(inducted=="Y"),
+                    tbl(con,"People"),
+                    by="playerID") |>
+                    collect() |>
+                    select(playerID,nameFirst,nameLast,inducted,yearID,category)
+HOF_table
+```
+
+From the `Managers` table, we'll gather some stats on those players that had a managerial role.
+
+```{r}
+Manager_Records=tbl(con,"Managers") |>
+                  select(playerID,G,W,L) |>
+                  group_by(playerID) |>
+                  summarize(G_managed = sum(G,na.rm=TRUE),
+                          Total_W = sum(W,na.rm=TRUE),
+                          Total_L = sum(L,na.rm=TRUE)) |>
+                  collect() |>
+                  mutate(WL_percent = Total_W/G_managed) |>
+                  arrange(desc(WL_percent))
+Manager_Records
+```
+
+Lastly, we'll join these two tables to find out which of players that had manager-type roles were also Hall of Famers.
+
+```{r}
+inner_join(HOF_table,Manager_Records,by="playerID") |>
+  select(-playerID)
+```
+
+As a precaution, we'll disconnect from the database.
+
+```{r}
+dbDisconnect(con)
+```
