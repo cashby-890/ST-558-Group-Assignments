@@ -4,8 +4,12 @@ format: html
 editor: visual
 ---
 
+Welcome to our ST 558 Group Assignments repository. Below are links to our homework submissions:
+
 #ST 558 Group Assignments
 
-- \[Homework 2\] (/HW2/HW2Group4.qmd)
-- \[Homework 3\] (/HW3/Group4_HW3.qmd)
-- \[Homework 4\] (/HW4/Group4_HW4.qmd)
+- [Homework 2](HW2/HW2Group4.qmd)
+
+- [Homework 3](HW3/Group4_HW3.qmd)
+
+- [Homework 4](HW4/Group4_HW4.qmd)
