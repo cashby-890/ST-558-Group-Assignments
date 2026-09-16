@@ -1,0 +1,15 @@
+{
+  "hash": "ad98def5a8dd20c16aeb8feaf8677a40",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Homework 4\"\nauthor: \"Michael Mendoza\"\nformat: html\neditor: visual\n---\n\n# Task 1\n\n## Q1\n\n\n::: {.cell}\n\n:::\n\n\n## Q2\n\n# Task 2\n\n\n::: {.cell}\n\n:::\n\n\n# Task 3\n\n\n::: {.cell}\n\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
