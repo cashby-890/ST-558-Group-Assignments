@@ -1,0 +1,100 @@
+---
+title: "Riley_HW5"
+format: html
+---
+
+Assignment Information\
+ST 558\
+Homework 4\
+Individual\
+Shannon Riley
+
+```{r}
+#| echo: false
+#| output: false
+# Load required packages
+library(dplyr)    # to perform basic EDA
+library(httr)     # to query an API
+library(jsonlite) # to parse results of API query, tidyjson is another possible package to use
+library(readr)    # to read in CSV data
+library(stringr)  # to create clean column names
+library(tidyr)    # to clean up tibbles
+```
+
+Task 1: Querying an API and a Tidy-Style Function
+--
+
+Use the *GET()* function from the *httr* package to return information about a topic in the news:
+```{r}
+queryInfo <- GET('https://newsapi.org/v2/everything?q=wildfires&from=2026-08-20&language=en&apiKey=ffb8439b27574e0190e19b8887522f24')
+str(queryInfo, max.level = 1)
+```
+
+Parse the result of the API query and access the data frame that has the actual news article information:
+```{r}
+queryParse <- fromJSON(rawToChar(queryInfo$content))
+wildfireInfo <- as_tibble(queryParse$articles)
+wildfireInfo
+```
+
+```{r}
+#| echo: false
+#| output: false
+# Unnest first column to improve readability of tibble:
+# wildfireInfo |>
+#   unnest(source, names_sep = '.')
+```
+
+Write a function that allows the user to query the API with the following character string inputs: title/subject search, time period, API key:
+**Inputs must be character strings with %20 instead of spaces!*
+```{r}
+queryNewsAPI <- function(title_or_subject, date_to_search_from, API_key, ...) {
+  if(!is.character(title_or_subject) | !is.character(date_to_search_from) | !is.character(API_key)){
+    stop('Title or subject, date to search from, and API key must be character strings.')
+  }
+  queryInfo <- GET(paste('https://newsapi.org/v2/everything?q=', title_or_subject, '&from=', date_to_search_from, '&language=en&apiKey=', API_key, sep = ''))
+  queryParse <- fromJSON(rawToChar(queryInfo$content))
+  articleInfo <- as_tibble(queryParse$articles)
+  return(articleInfo)
+}
+```
+
+Didn't work - delete before submitting
+```{r}
+queryNewsAPI <- function(title_or_subject, date_to_search_from, API_key, ...) {
+  result <- tryCatch({
+    if (!is.character(title_or_subject) | !is.character(date_to_search_from) | !is.character(API_key)){
+    stop('Title or subject, date to search from, and API key must be character strings.')
+    }
+    queryInfo <- GET(paste('https://newsapi.org/v2/everything?q=', title_or_subject, '&from=', date_to_search_from, '&language=en&apiKey=', API_key, sep = ''))
+  queryParse <- fromJSON(rawToChar(queryInfo$content))
+  articleInfo <- as_tibble(queryParse$articles)
+  }, error = function(e) {
+    message("Error: ", e$message)
+    NA  # Returning NA in case of an error
+  })
+  return(result)
+}
+```
+
+Test function twice:
+```{r}
+queryNewsAPI('squid', '08/20/2026', 'ffb8439b27574e0190e19b8887522f24')
+```
+
+```{r}
+queryNewsAPI('Terry%20Pratchett', '08/20/2026', 'ffb8439b27574e0190e19b8887522f24')
+```
+
+
+Task 2: Summarizing Roller Coaster Data
+--
+
+Read in roller coaster data, clean up variable names, and convert variables to factors as needed
+```{r}
+rc <- read_csv('https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv')
+colnames(rc) <- str_to_camel(colnames(rc))
+rc |>
+  rename(numberInversions = ofInversions)
+```
+
