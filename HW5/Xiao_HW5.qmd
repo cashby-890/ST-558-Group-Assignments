@@ -28,7 +28,7 @@ news_api_key <- "74a38983f4844f5a8891b351f068b813"
 ```{r}
 #Query the API using 
 
-news_res <- GET(
+news_response <- GET(
   url = "https://newsapi.org/v2/everything",
   query = list(
     q = "artificial intelligence",
@@ -38,11 +38,35 @@ news_res <- GET(
     apiKey = news_api_key
   )
 )
+
+news_response
 ```
 
 2\. Parse what is returned and find your way to the data frame that has the actual article information in it (check content). Note the first column should be a list column!
+```{r}
+#Extract news content by parsing the response into an R object
+news_content <- content(news_response, as = "parsed", simplifyVector = TRUE)
+
+#Extract articles from the above content
+news_articles <- news_content$articles
+
+#Structure of resulting article data
+str(news_articles)
+
+#Display first few articles
+head(news_articles)
+
+#The resulting object contains info about the articles returned by the query, including the source, author, title, description, URL, publication date, and available article content
+
+#Note that the source variable is stored as a list column because each source contains multiple pieces of information
+```
 
 3\. Now write a quick function that allows the user to easily query this API. The inputs to the function should be the title/subject to search for (string), a time period to search from (string - you’ll search from that time until the present), and an API key.
+
+```{r}
+
+```
+
 
 ###### Use your function twice to show it works!
 
