@@ -33,7 +33,7 @@ news_response <- GET(
   query = list(
     q = "artificial intelligence",
     from = Sys.Date() - 14, #14 Days Ago
-    lanaguage = "en",
+    language = "en",
     pageSize = 50,
     apiKey = news_api_key
   )
@@ -43,12 +43,16 @@ news_response
 ```
 
 2\. Parse what is returned and find your way to the data frame that has the actual article information in it (check content). Note the first column should be a list column!
+
 ```{r}
 #Extract news content by parsing the response into an R object
 news_content <- content(news_response, as = "parsed", simplifyVector = TRUE)
 
 #Extract articles from the above content
 news_articles <- as_tibble(news_content$articles)
+
+#Look at structure of news_articles
+str(news_articles)
 
 #Display first few articles
 head(news_articles)
@@ -69,7 +73,7 @@ query_news <- function(subject, from_date, api_key) {
       from = from_date,
       language = "en",
       pageSize = 50,
-      apiKey = news_api_key
+      apiKey = api_key
     )
   )
   #Parse JSON response
@@ -83,32 +87,33 @@ query_news <- function(subject, from_date, api_key) {
 ```
 
 ###### Use your function twice to show it works!
+
 ```{r}
 #Example 1
 travel_news <- query_news(
   subject = "travel",
   from_date = Sys.Date() - 2,
-  api_key = apiKey
+  api_key = news_api_key
 )
 
-head(travel_news[,-1])
+head(travel_news)
 
 #Example 2
 celebrity_news <- query_news(
   subject = "celebrity",
   from_date = Sys.Date() - 1,
-  api_key = apiKey
+  api_key = news_api_key
 )
 
-head(celebrity_news[,-1])
+head(celebrity_news)
 ```
-
 
 #### Task 2 - Summarizing Roller Coaster Data
 
 Loading roller coaster data
+
 ```{r}
-coaster_data <- read.csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
+coaster_data <- read_csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
 
 #Examine variable types and convert to factors as needed
 str(coaster_data)
@@ -122,13 +127,12 @@ coaster_data <- coaster_data |>
     Park = as.factor(Park),
     City = as.factor(City),
     State = as.factor(State),
-    CensusRegion = as.factor(Census.Region),
+    CensusRegion = as.factor(.data[['Census Region']]),
     AgeGroup = factor(AgeGroup, levels = c(1, 2, 3), labels = c("Older", "Recent", "Newest")),
     Scale = as.factor(Scale),
     Type = as.factor(Type),
     Design = as.factor(Design),
-    Inversions = as.factor(Inversions.),
-    State = as.factor(State),
+    Inversions = as.factor(.data[['Inversions?']]),
     Make = as.factor(Make)
   )
 ```
@@ -146,6 +150,7 @@ names(coaster_data)
 
 summary(coaster_data)
 ```
+
 The structure output confirms that categorical variables are stored as factors and quantitative measurements (e.g. top speed, max height, drop, etc.) are stored numerically.
 
 5\. Document any missing values in the data.
@@ -156,7 +161,7 @@ missing_values <- colSums(is.na(coaster_data))
 missing_values[missing_values > 0]
 ```
 
-Topspeed has 74 missing values. MaxHeight has 8 missing values. Drop has 128 missing values. Length has 33 missing values. Duration has 66 missing values.
+TopSpeed has 74 missing values. MaxHeight has 8 missing values. Drop has 128 missing values. Length has 33 missing values. Duration has 66 missing values. Make has 36 missing values.
 
 #### Categorical Variables
 
@@ -178,12 +183,92 @@ table_three_way <- table(Type = coaster_data$Type, Scale = coaster_data$Scale, I
 table_three_way
 ```
 
+**One-way table interpretation:** There are 530 steel roller coasters in the dataset.
 
-7\. Create a conditional two-way table using table(). That is, condition on one variable’s setting and
-create a two-way table. Do this using two different methods:
-- Once, by subsetting the data (say with filter()) and then creating the two-way table
-- Once, by creating a three-way table and subsetting it
+**Two-way table interpretation:** There are 216 roller coasters that are both steel and classified as Extreme.
+
+**Three-way table interpretation:** There are 166 roller coasters that are steel, classified as Extreme, and have inversions.
+
+7\. Create a conditional two-way table using table(). That is, condition on one variable’s setting and create a two-way table. Do this using two different methods:
+
+\- Once, by subsetting the data (say with filter()) and then creating the two-way table
+
+\- Once, by creating a three-way table and subsetting it
+
+```{r}
+#Method 1 -- Subsetting the Data only in the Midwest Region
+midwest_coasters <- coaster_data |>
+  filter(CensusRegion == "Midwest")
+
+###Create a 2-way table for the filtered obs
+midwest_table_method1 <- table(
+  midwest_coasters$Scale,
+  midwest_coasters$Type
+)
+
+midwest_table_method1
+
+#Method 2 - Subsetting a 3-way table
+###Obtaining the same result via a 3 way contingency table
+conditional_table <- table(
+  coaster_data$Scale,
+  coaster_data$Type,
+  coaster_data$CensusRegion
+)
+
+midwest_table_method2 <- conditional_table[, , "Midwest"]
+midwest_table_method2
+
+table(coaster_data$CensusRegion)
+```
 
 8\. Create a two-way contingency table using group_by() and summarize() from dplyr. Then use pivot_wider() to make the result more like the output from table().
 
+```{r}
+#Count each combination of Scale & Type
+scale_type_summary <- coaster_data |>
+  group_by(Scale, Type) |>
+  summarize(
+    count = n(),
+    .groups = "drop"
+  )
+
+scale_type_wide <- scale_type_summary |>
+  pivot_wider(
+    names_from = Type,
+    values_from = count,
+    values_fill = 0
+  )
+
+scale_type_wide
+```
+
 9\. Create a stacked bar graph and a side-by-side bar graph. Give relevant x and y labels, and a title for the plots.
+
+```{r}
+#Stacked Bar Graph of Scale by Type
+ggplot(
+  coaster_data,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar() +
+  labs(
+    title = "Stacked Bar Graph of Roller Coaster Type by Scale",
+    x = "Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type"
+  )
+
+#Side by side bar graph
+ggplot(
+  coaster_data,
+  aes(x = Scale, fill = Type)
+) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Side-by-Side Bar Graph of Roller Coaster Type by Scale",
+    x = "Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type"
+  )
+```

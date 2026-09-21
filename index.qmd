@@ -13,3 +13,15 @@ Welcome to our ST 558 Group Assignments repository. Below are links to our homew
 - [Homework 3](HW3/Group4_HW3.qmd)
 
 - [Homework 4](HW4/Group4_HW4.qmd)
+
+- \[Homework 5\] 9/21, 9/23
+
+- \[Homework 6\] 10/5, 10/7
+
+- \[Homework 7\] 10/12, 10/14
+
+- \[Homework 8\] 10/21
+
+- \[Homework 9\] 11/2, 11/4
+
+- \[Homework 10\] 11/9, 11/11
