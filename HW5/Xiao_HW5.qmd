@@ -48,31 +48,104 @@ news_response
 news_content <- content(news_response, as = "parsed", simplifyVector = TRUE)
 
 #Extract articles from the above content
-news_articles <- news_content$articles
-
-#Structure of resulting article data
-str(news_articles)
+news_articles <- as_tibble(news_content$articles)
 
 #Display first few articles
 head(news_articles)
 
 #The resulting object contains info about the articles returned by the query, including the source, author, title, description, URL, publication date, and available article content
-
-#Note that the source variable is stored as a list column because each source contains multiple pieces of information
 ```
 
 3\. Now write a quick function that allows the user to easily query this API. The inputs to the function should be the title/subject to search for (string), a time period to search from (string - you’ll search from that time until the present), and an API key.
 
 ```{r}
+#Query NewsAPI and return the article data frame
+query_news <- function(subject, from_date, api_key) {
 
+  response <- GET(
+    url = "https://newsapi.org/v2/everything",
+    query = list(
+      q = subject,
+      from = from_date,
+      language = "en",
+      pageSize = 50,
+      apiKey = news_api_key
+    )
+  )
+  #Parse JSON response
+  parsed_response <- content(
+    response,
+    as = "parsed",
+    simplifyVector = TRUE
+  )
+  as_tibble(parsed_response$articles)
+}
+```
+
+###### Use your function twice to show it works!
+```{r}
+#Example 1
+travel_news <- query_news(
+  subject = "travel",
+  from_date = Sys.Date() - 2,
+  api_key = apiKey
+)
+
+head(travel_news[,-1])
+
+#Example 2
+celebrity_news <- query_news(
+  subject = "celebrity",
+  from_date = Sys.Date() - 1,
+  api_key = apiKey
+)
+
+head(celebrity_news[,-1])
 ```
 
 
-###### Use your function twice to show it works!
-
 #### Task 2 - Summarizing Roller Coaster Data
 
+Loading roller coaster data
+```{r}
+coaster_data <- read.csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
+
+#Examine variable types and convert to factors as needed
+str(coaster_data)
+```
+
+Some variables were read in as categorical variables rather than numeric variables. Below steps are used to convert them to factors.
+
+```{r}
+coaster_data <- coaster_data |>
+  mutate(
+    Park = as.factor(Park),
+    City = as.factor(City),
+    State = as.factor(State),
+    CensusRegion = as.factor(Census.Region),
+    AgeGroup = as.factor(AgeGroup),
+    Scale = as.factor(Scale),
+    Type = as.factor(Type),
+    Design = as.factor(Design),
+    Inversions = as.factor(Inversions.),
+    Make = as.factor(Make)
+  )
+```
+
 4\. Look at how the data is stored and see if everything makes sense.
+
+```{r}
+#Look at structure, dimensions, variable names, and descriptive statistics of the data
+
+str(coaster_data)
+
+dim(coaster_data)
+
+names(coaster_data)
+
+summary(coaster_data)
+```
+
 
 5\. Document any missing values in the data.
 
