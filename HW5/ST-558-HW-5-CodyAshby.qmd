@@ -1,0 +1,102 @@
+---
+title: "Querying APIs and EDA"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+## Task One: Querying an API and a Tidy-Style Function
+
+1. The first part of this assignment will focus on connecting to an API. We'll need to upload the `httr` package as well as attain an API key. The topic of interest is one that's been in the news not just the last few weeks, but the last few years! Since it's a really hot topic, we'll just look at articles posted after Labor Day.
+
+```{r}
+library(httr)
+
+#Use this as the API key: "5970f6f1267047469fb8667ecde70a24"
+
+test_url=GET("https://newsapi.org/v2/everything?q=inflation&from=2026-09-08&language=en&pageSize=50&apiKey=5970f6f1267047469fb8667ecde70a24")
+test_url
+```
+
+Below is the structure of this url.
+
+```{r}
+str(test_url,max.level = 1)
+```
+
+2. Sticking to what's been demonstrated in lectures, we'll upload the `jsonlite` package.
+
+```{r}
+library(jsonlite)
+```
+
+We'll need to use parsing methods here and convert any raw information from this `json`-type object to a character format and further convert it to a tibble.
+
+```{r}
+parsed_url=fromJSON(rawToChar(test_url$content))
+
+articles=as_tibble(parsed_url$articles)
+articles
+```
+
+Wait! The first column shouldn't be a collection of data frames! Let's remove that column.
+
+```{r}
+simplified_articles=articles[-1]
+simplified_articles
+```
+
+There! That's better.
+
+3. Next, we'll create a function that allows a user to input a topic, a date, and an API key.
+
+```{r}
+#A function will go here...
+```
+
+## Task Two: Summarizing Roller Coaster Data
+
+```{r}
+library(readr)
+roller_coaster_data=read_csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
+
+roller_coaster_data
+```
+
+#### Basic EDA
+
+4. Let's look at the structure of this object to see how it's stored and if there's anything that makes no sense.
+
+```{r}
+str(roller_coaster_data)
+```
+
+5. The `colSums` function will now be used along with the `is.na` function to determine which variables have missing values, if any.
+
+```{r}
+colSums(is.na(roller_coaster_data))
+```
+
+#### Categorical Variables
+
+6. Let's make a few contingency tables, namely, a one-way, two-way, and a three-way.
+
+```{r}
+```
+
+Some extra commentary for these contingency tables will go here.
+
+7. Next, we'll use two methods for constructing a conditional two-way table. One will involve subsetting the data before creating the table, and the other will use a subset of a three-way table.
+
+```{r}
+```
+
+8. We can also use `dplyr` to create a two-way contingency table; however, we'll need to use a pivoting method so that it actually looks like a table.
+
+```{r}
+```
+
+9. Lastly, we'll create two types of bar graphs.
+
+```{r}
+```
