@@ -123,11 +123,12 @@ coaster_data <- coaster_data |>
     City = as.factor(City),
     State = as.factor(State),
     CensusRegion = as.factor(Census.Region),
-    AgeGroup = as.factor(AgeGroup),
+    AgeGroup = factor(AgeGroup, levels = c(1, 2, 3), labels = c("Older", "Recent", "Newest")),
     Scale = as.factor(Scale),
     Type = as.factor(Type),
     Design = as.factor(Design),
     Inversions = as.factor(Inversions.),
+    State = as.factor(State),
     Make = as.factor(Make)
   )
 ```
@@ -135,7 +136,7 @@ coaster_data <- coaster_data |>
 4\. Look at how the data is stored and see if everything makes sense.
 
 ```{r}
-#Look at structure, dimensions, variable names, and descriptive statistics of the data
+#Look at structure, dimensions, variable names, and descriptive statistics of the data. Variable types should match its respective type (i.e. chr/factor, int/dbl, and geospatial which won't be used)
 
 str(coaster_data)
 
@@ -145,15 +146,38 @@ names(coaster_data)
 
 summary(coaster_data)
 ```
-
+The structure output confirms that categorical variables are stored as factors and quantitative measurements (e.g. top speed, max height, drop, etc.) are stored numerically.
 
 5\. Document any missing values in the data.
+
+```{r}
+missing_values <- colSums(is.na(coaster_data))
+
+missing_values[missing_values > 0]
+```
+
+Topspeed has 74 missing values. MaxHeight has 8 missing values. Drop has 128 missing values. Length has 33 missing values. Duration has 66 missing values.
 
 #### Categorical Variables
 
 6\. Create a one-way contingency table, a two-way contingency table, and a three-way contingency table for some of the factor variables you created previously. Use table() to accomplish this.
 
 -Interpret a number from each resulting table (that is, pick out a value produced and explain what that value means.)
+
+```{r}
+#1 Way Table - Coaster Type
+table_one_way <- table(Type = coaster_data$Type)
+table_one_way
+
+#2 Way Table - Type by Scale
+table_two_way <- table(Type = coaster_data$Type, Scale = coaster_data$Scale)
+table_two_way
+
+#3 Way Table - Type by Scale by Inversions
+table_three_way <- table(Type = coaster_data$Type, Scale = coaster_data$Scale, Inversions = coaster_data$Inversions)
+table_three_way
+```
+
 
 7\. Create a conditional two-way table using table(). That is, condition on one variable’s setting and
 create a two-way table. Do this using two different methods:
