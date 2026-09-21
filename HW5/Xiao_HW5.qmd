@@ -1,0 +1,68 @@
+---
+title: "Xiao_HW5"
+format: html
+editor: visual
+---
+
+# Homework 5
+
+#### Task 1 - Querying an API and a Tidy-Style Function
+
+```{r}
+#Install packages as necessary
+#install.packages("httr")
+#install.packages("jsonlite")
+```
+
+```{r}
+#Load Packages and API Key
+library(httr)
+library(jsonlite)
+library(tidyverse)
+
+news_api_key <- "74a38983f4844f5a8891b351f068b813"
+```
+
+1\. Use GET() from the httr package to return information about a topic that you are interested in that has been in the news lately (store the result as an R object). Note: We can only look 30 days into the past with a free account.
+
+```{r}
+#Query the API using 
+
+news_res <- GET(
+  url = "https://newsapi.org/v2/everything",
+  query = list(
+    q = "artificial intelligence",
+    from = Sys.Date() - 14, #14 Days Ago
+    lanaguage = "en",
+    pageSize = 50,
+    apiKey = news_api_key
+  )
+)
+```
+
+2\. Parse what is returned and find your way to the data frame that has the actual article information in it (check content). Note the first column should be a list column!
+
+3\. Now write a quick function that allows the user to easily query this API. The inputs to the function should be the title/subject to search for (string), a time period to search from (string - you’ll search from that time until the present), and an API key.
+
+###### Use your function twice to show it works!
+
+#### Task 2 - Summarizing Roller Coaster Data
+
+4\. Look at how the data is stored and see if everything makes sense.
+
+5\. Document any missing values in the data.
+
+#### Categorical Variables
+
+6\. Create a one-way contingency table, a two-way contingency table, and a three-way contingency table for some of the factor variables you created previously. Use table() to accomplish this.
+
+-Interpret a number from each resulting table (that is, pick out a value produced and explain what that value means.)
+
+7\. Create a conditional two-way table using table(). That is, condition on one variable’s setting and
+create a two-way table. Do this using two different methods:
+- Once, by subsetting the data (say with filter()) and then creating the two-way table
+- Once, by creating a three-way table and subsetting it
+
+8\. Create a two-way contingency table using group_by() and summarize() from dplyr. Then use pivot_wider() to make the result more like the output from table().
+
+9\. Create a stacked bar graph and a side-by-side bar graph. Give relevant x and y labels, and a title for the plots.
