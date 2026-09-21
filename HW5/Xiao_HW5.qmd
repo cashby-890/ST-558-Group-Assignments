@@ -1,5 +1,7 @@
 ---
 title: "Xiao_HW5"
+name: "Stanley Xiao"
+date: "2026-09-20"
 format: html
 editor: visual
 ---
@@ -119,7 +121,7 @@ coaster_data <- read_csv("https://www4.stat.ncsu.edu/online/datasets/635USroller
 str(coaster_data)
 ```
 
-Some variables were read in as categorical variables rather than numeric variables. Below steps are used to convert them to factors.
+Some variables represent categorical variables and are converted to factors below.
 
 ```{r}
 coaster_data <- coaster_data |>
@@ -218,8 +220,6 @@ conditional_table <- table(
 
 midwest_table_method2 <- conditional_table[, , "Midwest"]
 midwest_table_method2
-
-table(coaster_data$CensusRegion)
 ```
 
 8\. Create a two-way contingency table using group_by() and summarize() from dplyr. Then use pivot_wider() to make the result more like the output from table().
