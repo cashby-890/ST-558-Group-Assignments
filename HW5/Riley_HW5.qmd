@@ -5,7 +5,7 @@ format: html
 
 Assignment Information\
 ST 558\
-Homework 4\
+Homework 5\
 Individual\
 Shannon Riley
 
@@ -27,7 +27,7 @@ Task 1: Querying an API and a Tidy-Style Function
 
 Use the *GET()* function from the *httr* package to return information about a topic in the news:
 ```{r}
-queryInfo <- GET('https://newsapi.org/v2/everything?q=wildfires&from=2026-08-20&language=en&apiKey=ffb8439b27574e0190e19b8887522f24')
+queryInfo <- GET('https://newsapi.org/v2/everything?q=wildfires&from=2026-08-26&language=en&apiKey=ffb8439b27574e0190e19b8887522f24')
 str(queryInfo, max.level = 1)
 ```
 
@@ -46,8 +46,8 @@ wildfireInfo
 #   unnest(source, names_sep = '.')
 ```
 
-Write a function that allows the user to query the API with the following character string inputs: title/subject search, time period, API key:
-**Inputs must be character strings with %20 instead of spaces!*
+Write a function that allows the user to query the API with the following character string inputs: title/subject search, time period, API key:\
+**Inputs must be character strings with "%20" instead of spaces!**
 ```{r}
 queryNewsAPI <- function(title_or_subject, date_to_search_from, API_key, ...) {
   if(!is.character(title_or_subject) | !is.character(date_to_search_from) | !is.character(API_key)){
@@ -60,31 +60,13 @@ queryNewsAPI <- function(title_or_subject, date_to_search_from, API_key, ...) {
 }
 ```
 
-Didn't work - delete before submitting
-```{r}
-queryNewsAPI <- function(title_or_subject, date_to_search_from, API_key, ...) {
-  result <- tryCatch({
-    if (!is.character(title_or_subject) | !is.character(date_to_search_from) | !is.character(API_key)){
-    stop('Title or subject, date to search from, and API key must be character strings.')
-    }
-    queryInfo <- GET(paste('https://newsapi.org/v2/everything?q=', title_or_subject, '&from=', date_to_search_from, '&language=en&apiKey=', API_key, sep = ''))
-  queryParse <- fromJSON(rawToChar(queryInfo$content))
-  articleInfo <- as_tibble(queryParse$articles)
-  }, error = function(e) {
-    message("Error: ", e$message)
-    NA  # Returning NA in case of an error
-  })
-  return(result)
-}
-```
-
 Test function twice:
 ```{r}
-queryNewsAPI('squid', '08/20/2026', 'ffb8439b27574e0190e19b8887522f24')
+queryNewsAPI('squid', '08/26/2026', 'ffb8439b27574e0190e19b8887522f24')
 ```
 
 ```{r}
-queryNewsAPI('Terry%20Pratchett', '08/20/2026', 'ffb8439b27574e0190e19b8887522f24')
+queryNewsAPI('Terry%20Pratchett', '08/26/2026', 'ffb8439b27574e0190e19b8887522f24')
 ```
 
 
@@ -121,36 +103,43 @@ View just number of missing values per variable:
 colSums(is.na(rc))
 ```
 
-Create contingency tables (one-way, two-way, three-way) for the factor variables:
+Create contingency tables (one-way, two-way, three-way) for the factor variables:\
+1) One-way
 ```{r}
 table(rc$censusRegionF)
 ```
 This contingency table is a one-way table showing how many observations (roller coasters) are in each region. For example, the West region has 122 roller coasters.
-
+\
+\
+2) Two-way
 ```{r}
 table(rc$typeF, rc$ageGroupF)
 ```
 This second contingency table is a two-way table showing how many observations with a given type fall into each age group. For example, there are 35 wood roller coasters in the recent age group.
-
+\
+\
+3) Three-way
 ```{r}
 table(rc$designF, rc$scaleF, rc$inversionsF, useNA = 'always')
 ```
 This contingency table is a three-way table (specifically a 3D array) showing how many roller coasters with or without inversions were a given design and scale. For example, there were 9 roller coasters with inversions, a flying design type and extreme scale.
 
 Create a conditional two-way table using the *table()* function by:
+\
 1) Subsetting the data, then creating the table
 ```{r}
 rcFilt <- rc |>
   filter(scaleF == 'Extreme')
 table(rc$designF, rc$ageGroupF)
 ```
+\
 2) Creating a three-way table, then subsetting it
 ```{r}
 table(rc$scaleF, rc$censusRegionF, rc$ageGroupF)
 table(rc$scaleF, rc$censusRegionF, rc$ageGroupF)[, , 'Newest']
 ```
 
-Create a two-way contingency table using *group_by()* and *summarize()* from *dplyr*, then use *pivot_wider()* to make it more readable
+Create a two-way contingency table using *group_by()* and *summarize()* from *dplyr*, then use *pivot_wider()* to make it more readable:
 ```{r}
 rc |>
   group_by(censusRegionF, designF) |>
@@ -158,14 +147,16 @@ rc |>
   pivot_wider(names_from = censusRegionF, values_from = count)
 ```
 
-Create a stacked bar graph and a side-by-side bar graph:
+Create a stacked bar graph and a side-by-side bar graph:\
+1) Stacked
 ```{r}
 stackAgeRegion <- ggplot(rc, aes(x = ageGroupF, fill = censusRegionF)) +
   geom_bar(position = 'stack') +
   labs(x = 'Age Group', y = 'Count', fill = 'Region', title = 'Number of Roller Coasters by Age Group and Region')
 stackAgeRegion
 ```
-
+\
+2) Side-by-side
 ```{r}
 sideAgeRegion <- ggplot(rc, aes(x = ageGroupF, fill = censusRegionF)) +
   geom_bar(position = 'dodge') +
