@@ -7,7 +7,7 @@ editor: visual
 
 ## Task One: Querying an API and a Tidy-Style Function
 
-1. The first part of this assignment will focus on connecting to an API. We'll need to upload the `httr` package as well as attain an API key. The topic of interest is one that's been in the news not just the last few weeks, but the last few years! Since it's a really hot topic, we'll just look at articles posted after Labor Day.
+1.  The first part of this assignment will focus on connecting to an API. We'll need to upload the `httr` package as well as attain an API key. The topic of interest is one that's been in the news not just the last few weeks, but the last few years! Since it's a really hot topic, we'll just look at articles posted after Labor Day.
 
 ```{r}
 library(httr)
@@ -24,7 +24,7 @@ Below is the structure of this url.
 str(test_url,max.level = 1)
 ```
 
-2. Sticking to what's been demonstrated in lectures, we'll upload the `jsonlite` package.
+2.  Sticking to what's been demonstrated in lectures, we'll upload the `jsonlite` package.
 
 ```{r}
 library(jsonlite)
@@ -48,30 +48,63 @@ simplified_articles
 
 There! That's better.
 
-3. Next, we'll create a function that allows a user to input a topic, a date, and an API key.
+3.  Next, we'll create a function that allows a user to input a topic, a date, and an API key.
 
 ```{r}
-#A function will go here...
+search_it <- function(topic,date,APIkey){
+  if(!is.character(topic)|!is.character(date)|!is.character(APIkey)){
+    stop("At least one of these is NOT a string. Use quotation marks and '%20' instead of a space for better results. Also, make sure the date is of the format yyyy-mm-dd.")
+  }
+  lengthy_url = GET(paste("https://newsapi.org/v2/everything?q=",
+                          topic,"&from=",date,"&language=en&pageSize=50&apiKey=",APIkey,sep=''))
+  parsed_search = fromJSON(rawToChar(lengthy_url$content))
+  top_articles = as.tibble(parsed_search$articles)
+  return(top_articles[-1])
+}
+```
+
+Let's try this function out!
+
+```{r}
+search_it('groceries','2026-09-18','5970f6f1267047469fb8667ecde70a24')
+```
+
+```{r}
+search_it('midterm%20elections','2026-09-18','5970f6f1267047469fb8667ecde70a24')
 ```
 
 ## Task Two: Summarizing Roller Coaster Data
 
+Before diving in, let's upload the `tidyverse` library and read in this data set.
+
 ```{r}
-library(readr)
+library(tidyverse)
 roller_coaster_data=read_csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
 
 roller_coaster_data
 ```
 
+There's also a good handful of categorical variables; let's use `factor` methods.
+
+```{r}
+roller_coaster_data |>
+  mutate(Region=as.factor(`Census Region`),
+         AgeGroup=as.factor(AgeGroup),
+         Scale=as.factor(Scale),
+         Type=as.factor(Type),
+         Design=as.factor(Design),
+         `Inversions?`=as.factor(`Inversions?`))
+```
+
 #### Basic EDA
 
-4. Let's look at the structure of this object to see how it's stored and if there's anything that makes no sense.
+4.  Let's look at the structure of this object to see how it's stored and if there's anything that makes no sense.
 
 ```{r}
 str(roller_coaster_data)
 ```
 
-5. The `colSums` function will now be used along with the `is.na` function to determine which variables have missing values, if any.
+5.  The `colSums` function will now be used along with the `is.na` function to determine which variables have missing values, if any.
 
 ```{r}
 colSums(is.na(roller_coaster_data))
@@ -79,24 +112,50 @@ colSums(is.na(roller_coaster_data))
 
 #### Categorical Variables
 
-6. Let's make a few contingency tables, namely, a one-way, two-way, and a three-way.
+6.  Let's make a few contingency tables based on up to three categories: the age, type and region of each roller coaster.
 
 ```{r}
+# One-way table for age of coasters
+table(roller_coaster_data$AgeGroup)
+# Two-way table for age of coasters and type
+table(roller_coaster_data$AgeGroup,roller_coaster_data$Type)
+# Three-way table for age of coasters, type, and census region
+table(roller_coaster_data$AgeGroup,roller_coaster_data$Type,roller_coaster_data$`Census Region`)
 ```
 
 Some extra commentary for these contingency tables will go here.
 
-7. Next, we'll use two methods for constructing a conditional two-way table. One will involve subsetting the data before creating the table, and the other will use a subset of a three-way table.
+7.  Next, we'll use two methods for constructing a conditional two-way table. One will involve subsetting the data before creating the table, and the other will use a subset of a three-way table.
 
 ```{r}
+# Focus on type and scale of coasters in South region
+southern_coasters <- roller_coaster_data |>
+  filter(`Census Region`=="South")
+
+# Two-way table from subsetted data
+table(southern_coasters$Type,southern_coasters$Scale)
+
+# Subset of three-way table
+table(roller_coaster_data$Type,roller_coaster_data$Scale,roller_coaster_data$`Census Region`)[,,"South"]
 ```
 
-8. We can also use `dplyr` to create a two-way contingency table; however, we'll need to use a pivoting method so that it actually looks like a table.
+8.  We can also use `dplyr` to create a two-way contingency table; however, we'll need to use a pivoting method so that it actually looks like a table.
 
 ```{r}
+roller_coaster_data |>
+  group_by(`Census Region`,Type) |>
+  summarize(count=n()) |>
+  pivot_wider(names_from = `Census Region`,values_from = count)
 ```
 
-9. Lastly, we'll create two types of bar graphs.
+9.  Lastly, we'll create two types of bar graphs, one stacked and one side-by-side
 
 ```{r}
+ggplot(roller_coaster_data,aes(x=`Census Region`,fill=Type)) +
+  geom_bar() + 
+  labs(x="Region",y="Number",fill="Region",title="Number of Roller Coasters by Type and Region")
+
+ggplot(roller_coaster_data,aes(x=`Census Region`,fill=Type)) +
+  geom_bar(position="dodge") + 
+  labs(x="Region",y="Number",fill="Region",title="Number of Roller Coasters by Type and Region")
 ```
