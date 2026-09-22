@@ -67,3 +67,73 @@ call_news_data( "2026-09-15", "b77f47e6761b44f08c28ff6365616d7f")
 call_news_data( "2026-09-07", "b77f47e6761b44f08c28ff6365616d7f")
 
 ```
+
+## Task 2
+
+```{r}
+# call coaster data
+coasters <- read_csv("https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv")
+
+# Mutate to factor variables as needed
+coasters <- mutate( coasters,
+                   Park = as.factor(Park),
+                   City = as.factor(City),
+                   State = as.factor(State),
+                   CensusRegion = as.factor(.data[['Census Region']]),
+                   AgeGroup = factor(AgeGroup, levels = c('1:Older', '2:Recent', 
+                                                          '3:Newest'), 
+                                     labels = c('Older', 'Recent', 'Newest')),
+                   Scale = as.factor(Scale),
+                   Type = as.factor(Type),
+                   Design = as.factor(Design),
+                   Inversions = as.factor(.data[['Inversions?']]),
+                   Make = as.factor(Make))
+
+# check for Missing values
+Coasters_NA <- coasters %>% 
+                  filter(if_any(everything(), is.na))
+
+# One-way Contingency table
+oneway <- table(coasters$Scale, useNA = 'always') 
+oneway[1] #Each value represents the number of coasters that fit into the categories of Scale (i.e. Extreme:269 represents there being 269 Extreme scale coasters).
+
+
+# Two-way Contingency table
+twoway <- table(coasters$Scale, coasters$Type, useNA = 'always') 
+twoway[ 1, 1]#Each value represents the number of coasters that fit into the categories of Scale for a given Type (i.e. Steel/Extreme:216 represents there being 216 Extreme-Steel coasters).
+
+# Three-way Contingency table
+threeway <- table(coasters$Scale, coasters$Type, coasters$Design, useNA = 'always')
+threeway[ 4, 1, 1] #Each value represents the number of coasters that fit into the categories of Scale for a given Type and given Design (i.e. Bobsled/Steel/Thrill:3 represents there being 3 Bobsled-Thrill-Steel coasters).
+# Create Conditional two-way Contingency under 2 conditions.
+# Via Filter
+coasters_sub1 <- coasters %>% 
+                  filter( coasters$Design == "Sit Down") 
+
+table(coasters_sub1$Scale, coasters_sub1$Type, useNA = 'always')
+
+# Via threesubsetting
+table(coasters$Scale, coasters$Type, coasters$Design, useNA = 'always')[ , , 4]
+
+# Contingency Table via group by, summarize, and pivot
+coasters %>%
+  group_by( Type, Scale ) %>%
+  summarize(count = n()) %>%
+  pivot_wider(names_from = Type, values_from = count)
+
+# Stacked bar graph
+coasters %>% 
+  drop_na(Scale, Type) %>%
+    ggplot( aes(x = Scale, fill = Type)) +
+      geom_bar() +
+      labs(title = "Stacked Vertical Bar Graph", x = "Roller Coaster Scale", 
+           y = "Number of Coasters")
+
+coasters %>% 
+  drop_na(Scale, Type) %>%
+    ggplot( aes(x = Scale, fill = Type)) +
+      geom_bar(position = "dodge") +
+      labs(title = "Side by Side Vertical Bar Graph", x = "Roller Coaster Scale",
+           y = "Number of Coasters")
+
+```
