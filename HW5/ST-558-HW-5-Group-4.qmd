@@ -1,0 +1,203 @@
+---
+title: "ST 558 Fall 2026 Group 4 Homework 5"
+format: html
+editor: visual
+---
+
+```{r}
+#| echo: false
+#| output: false
+
+#Install packages as necessary
+#install.packages("httr")
+#install.packages("jsonlite")
+#install.packages("tidyverse")
+
+# Load required packages
+library(httr)
+library(jsonlite)
+library(tidyverse)
+```
+
+## Task One: Querying an API and a Tidy-Style Function
+
+1.  The first part of this assignment will focus on connecting to an API. We'll need to upload the `httr` package as well as attain an API key. The topic of interest is one that's been in the news not just the last few weeks, but the last few years! Since it's a really hot topic, we'll just look at articles posted after Labor Day.
+
+```{r}
+#Use this as the API key: "5970f6f1267047469fb8667ecde70a24"
+
+test_url=GET("https://newsapi.org/v2/everything?q=inflation&from=2026-09-08&language=en&pageSize=50&apiKey=5970f6f1267047469fb8667ecde70a24")
+test_url
+```
+
+Below is the structure of this url.
+
+```{r}
+str(test_url,max.level = 1)
+```
+
+2.  We'll need to use parsing methods here and convert any raw information from this `json`-type object to a character format and further convert it to a tibble.
+
+```{r}
+parsed_url=fromJSON(rawToChar(test_url$content))
+
+articles=as_tibble(parsed_url$articles)
+articles
+```
+
+Wait! The first column shouldn't be a collection of data frames! Let's remove that column.
+
+```{r}
+simplified_articles=articles[-1]
+simplified_articles
+```
+
+There! That's better.
+
+3.  Next, we'll create a function that allows a user to input a topic, a date, and an API key.
+
+```{r}
+search_it <- function(topic,date,APIkey){
+  if(!is.character(topic)|!is.character(date)|!is.character(APIkey)){
+    stop("At least one of these is NOT a string. Use quotation marks and '%20' instead of a space for better results. Also, make sure the date is of the format yyyy-mm-dd.")
+  }
+  lengthy_url = GET(paste("https://newsapi.org/v2/everything?q=",
+                          topic,"&from=",date,"&language=en&pageSize=50&apiKey=",APIkey,sep=''))
+  parsed_search = fromJSON(rawToChar(lengthy_url$content))
+  top_articles = as.tibble(parsed_search$articles)
+  return(top_articles[-1])
+}
+```
+
+Let's try this function out!
+
+```{r}
+search_it('groceries','2026-09-18','5970f6f1267047469fb8667ecde70a24')
+```
+
+```{r}
+search_it('midterm%20elections','2026-09-18','5970f6f1267047469fb8667ecde70a24')
+```
+
+## Task 2: Summarizing Roller Coaster Data
+
+#### Basic EDA
+
+4.  Read in roller coaster data, clean up variable names, and convert variables to factors as needed:
+
+```{r}
+rc <- read_csv('https://www4.stat.ncsu.edu/online/datasets/635USrollercoasters.csv')
+colnames(rc) <- str_to_camel(colnames(rc))
+rc <- rc |>
+  rename(numberInversions = ofInversions) |>
+  mutate(censusRegionF = as.factor(censusRegion),
+         ageGroupF = factor(ageGroup, levels = c('1:Older', '2:Recent', '3:Newest'), labels = c('Older', 'Recent', 'Newest')),
+         scaleF = factor(scale, levels = c('Extreme', 'Thrill', 'Family')),
+         typeF = as.factor(type),
+         designF = as.factor(design),
+         inversionsF = factor(inversions, levels = c('Yes', 'No')))
+rc
+```
+
+View how the data are stored:
+
+```{r}
+#Look at structure, dimensions, variable names, and descriptive statistics of the data. Variable types should match its respective type (i.e. chr/factor, int/dbl, and geospatial which won't be used)
+
+str(rc)
+
+dim(rc)
+
+names(rc)
+
+summary(rc)
+```
+
+The structure output confirms that categorical variables are stored as factors and quantitative measurements (e.g. top speed, max height, drop, etc.) are stored numerically.
+
+5.  Document any missing values in the data.
+
+```{r}
+missing_values <- colSums(is.na(rc))
+
+missing_values[missing_values > 0]
+```
+
+TopSpeed has 74 missing values. MaxHeight has 8 missing values. Drop has 128 missing values. Length has 33 missing values. Duration has 66 missing values. Make has 36 missing values.
+
+#### Categorical Variables
+
+6.  Create a one-way contingency table, a two-way contingency table, and a three-way contingency table for some of the factor variables you created previously. Use table() to accomplish this.
+
+- Interpret a number from each resulting table (that is, pick out a value produced and explain what that value means.)
+
+```{r}
+# One-way Contingency table
+oneway <- table(rc$scaleF, useNA = 'always') 
+oneway[1] #Each value represents the number of coasters that fit into the categories of Scale (i.e. Extreme:269 represents there being 269 Extreme scale coasters).
+
+# Two-way Contingency table
+twoway <- table(rc$scaleF, rc$typeF, useNA = 'always') 
+twoway[ 1, 1]#Each value represents the number of coasters that fit into the categories of Scale for a given Type (i.e. Steel/Extreme:216 represents there being 216 Extreme-Steel coasters).
+
+# Three-way Contingency table
+threeway <- table(rc$scaleF, rc$typeF, rc$designF, useNA = 'always')
+threeway[ 4, 1, 1] #Each value represents the number of coasters that fit into the categories of Scale for a given Type and given Design (i.e. Bobsled/Steel/Thrill:3 represents there being 3 Bobsled-Thrill-Steel coasters).
+```
+
+7.  Create a conditional two-way table using table(). That is, condition on one variable’s setting and create a two-way table. Do this using two different methods:
+
+- Once, by subsetting the data (say with filter()) and then creating the two-way table
+
+- Once, by creating a three-way table and subsetting it
+
+```{r}
+# Create Conditional two-way Contingency under 2 conditions.
+# Via Filter
+rc_sub1 <- rc |> 
+                  filter(rc$designF == "Sit Down") 
+
+table(rc_sub1$scaleF, rc_sub1$typeF, useNA = 'always')
+
+# Via threesubsetting
+table(rc$scaleF, rc$typeF, rc$designF, useNA = 'always')[ , , 4]
+```
+
+8.  Create a two-way contingency table using *group_by()* and *summarize()* from *dplyr*, then use *pivot_wider()* to make it more readable:
+
+```{r}
+rc |>
+  group_by(censusRegionF, designF) |>
+  summarize(count = n()) |>
+  pivot_wider(names_from = censusRegionF, values_from = count)
+```
+
+9.  Create a stacked bar graph and a side-by-side bar graph. Give relevant x and y labels, and a title for the plots.
+
+```{r}
+#Stacked Bar Graph of Scale by Type
+ggplot(
+  rc,
+  aes(x = scaleF, fill = typeF)
+) +
+  geom_bar() +
+  labs(
+    title = "Stacked Bar Graph of Roller Coaster Type by Scale",
+    x = "Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type"
+  )
+
+#Side by side bar graph
+ggplot(
+  rc,
+  aes(x = scaleF, fill = typeF)
+) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Side-by-Side Bar Graph of Roller Coaster Type by Scale",
+    x = "Coaster Scale",
+    y = "Number of Roller Coasters",
+    fill = "Coaster Type"
+  )
+```
