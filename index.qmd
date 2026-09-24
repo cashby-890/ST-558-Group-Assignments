@@ -14,7 +14,7 @@ Welcome to our ST 558 Group Assignments repository. Below are links to our homew
 
 - [Homework 4](HW4/Group4_HW4.qmd)
 
-- [Homework 5](docs/ST-558-HW-5-Group-4.qmd)
+- [Homework 5](HW5/ST-558-HW-5-Group-4.qmd)
 
 - \[Homework 6\] 10/5, 10/7
 
