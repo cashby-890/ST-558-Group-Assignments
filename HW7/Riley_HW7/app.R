@@ -7,20 +7,68 @@ source("helpers.R")
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
-  "Add a title panel here!",
+  # App title ----
+  titlePanel('Correlation Exploration'),
+  
+  # Sidebar with widgets ----
   sidebarLayout(
     sidebarPanel(
       h2("Select Variables to Find Correlation:"),
-      "Put your selectize inputs here!",
-      "Give them internal IDs of corr_x and corr_y.",
-      "Note the vector with these names comes from the helpers.R files. The object is called `numeric_vars`. Make sure you don't assign the same initial value to both inputs!",
-      br(),
-      "Place your radio buttons here! One radio button for each variable we may subset on. Set the internal IDs for these to be hhl_corr, fs_corr, and schl_corr.",
-      "Notice that you can use choiceNames and choiceValues to have different values show vs the values you use internally for comparisons. There are 'internal' values already used in the server file - the first large commented section - so you should set the internal values to match those!",
+      selectizeInput(inputId = 'corr_x',
+                     label = 'x Variable',
+                     choices = numeric_vars,
+                     selected = 'PINCP'
+                     ),
+      selectizeInput(inputId = 'corr_y',
+                     label = 'y Variable',
+                     choices = numeric_vars,
+                     selected = 'JWMNP'
+                     ),
+      h2("Choose a subset of the data:"),
+      radioButtons(inputId = 'hhl_corr',
+                   label = 'Household Language',
+                   selected = 'All',
+                   choiceNames = list('All', 
+                                      'English only', 
+                                      'Spanish', 
+                                      'Other'),
+                   choiceValues = list(as.character(c(0:5)), 
+                                       '1', 
+                                       '2', 
+                                       as.character(c(0, 3, 4, 5)))
+                   ),
+      radioButtons(inputId = 'fs_corr',
+                   label = 'SNAP Recipient',
+                   selected = 'All',
+                   choiceNames = list('All', 'Yes', 'No'),
+                   choiceValues = list(as.character(c(0:2)), '1', '2')
+                   ),
+      radioButtons(inputId = 'schl_corr',
+                   label = 'Educational attainment',
+                   selected = 'All',
+                   choiceNames = list('All',
+                                      'High School not Completed',
+                                      'High School or GED',
+                                      'College Degree'),
+                   choiceValues = list(c(names(SCHLvals)),
+                                       c(SCHLvals[sort(names(SCHLvals))][1:16]),
+                                       as.character(c(16:17)),
+                                       c(SCHLvals[sort(names(SCHLvals))][21:length(SCHLvals)]))
+                   ),
+      # "Notice that you can use choiceNames and choiceValues to have different 
+      # values show vs the values you use internally for comparisons. There are 
+      # 'internal' values already used in the server file - the first large 
+      # commented section - so you should set the internal values to match those!",
       h2("Select a Sample Size"),
-      "Put your slider for sample size here. Give this an ID of corr_n.",
+      sliderInput(inputId = 'corr_n',
+                  label = NULL,
+                  min = 20,
+                  max = 500,
+                  value = 20),
       actionButton("corr_sample","Get a Sample!")
     ),
+    
+    # Main Panel ----
     mainPanel(
       "Add a plotOutput here for the scatter plot!",
       conditionalPanel("input.corr_sample", #only show if a sample has been taken
