@@ -16,10 +16,14 @@ ui <- fluidPage(
       
       # Select X/Y Axis
       h2("Select Variables to Find Correlation:"),
-      selectizeInput(inputId = 'corr_x', label = 'x Variable', 
-                     choices = numeric_vars, selected = 'PINCP'), 
-      selectizeInput(inputId = 'corr_y', label = 'y Variable',
-                      choices = numeric_vars, selected = 'JWMNP'),
+        selectizeInput(inputId = 'corr_x', 
+                       label = 'x Variable', 
+                       choices = numeric_vars, 
+                       selected = 'PINCP'), 
+        selectizeInput(inputId = 'corr_y',
+                       label = 'y Variable',
+                       choices = numeric_vars,
+                       selected = 'JWMNP'),
       
       #Radio Buttons will go here
       
