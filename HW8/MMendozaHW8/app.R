@@ -25,8 +25,15 @@ ui <- fluidPage(
                        choices = numeric_vars,
                        selected = 'JWMNP'),
       
-      #Radio Buttons will go here
+      # Radio Buttons will go here
       
+      
+      # Slider
+      h2("Select a Sample Size"),
+      sliderInput(inputId = 'corr_n',
+                  label = NULL,
+                  min = 20,
+                  max = 500),
       
       #Action Button
       actionButton("corr_sample","Get a Sample!")
