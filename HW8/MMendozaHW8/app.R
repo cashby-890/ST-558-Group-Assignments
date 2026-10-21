@@ -113,8 +113,10 @@ server <- function(input, output, session) {
 
 
     #Create a reactiveValues() object called sample_corr
-    #this object should have two elements, corr_data and corr_truth
-    #both should be set to null to start with!
+    sample_corr = reactiveValues(corr_data=NULL,corr_truth=NULL)
+    observeEvent(input$corr_sample,{
+      
+    })
 
 
 
