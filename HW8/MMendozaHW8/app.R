@@ -24,28 +24,38 @@ ui <- fluidPage(
                        label = 'y Variable',
                        choices = numeric_vars,
                        selected = 'JWMNP'),
-      
       # Radio Buttons will go here
-      
-      
-      # Slider
+      br(),
+      h2("Choose a subset of the data:"),
+        radioButtons("hhl_corr",
+                     "Household Language",
+                     choiceNames = c("All","English Only","Spanish","Other"),
+                     choiceValues = c("all","english","spanish","other"),
+                     selected = "all"),
+        radioButtons("fs_corr",
+                     "SNAP Recipient",
+                     choiceNames = c("All","Yes","No"),
+                     choiceValues = c("all","yes","no"),
+                     selected = "all"),
+        radioButtons("schl_corr",
+                     "Educational Attainment",
+                     choiceNames = c("All","High School not completed","High School or GED","College Degree"),
+                     choiceValues = c("all","no_hs","hs","college"),
+                     selected = "all"),
+      br(),
       h2("Select a Sample Size"),
-      sliderInput(inputId = 'corr_n',
-                  label = NULL,
-                  min = 20,
-                  max = 500),
-      
-      #Action Button
+        sliderInput("corr_n",
+                    label=NULL,
+                    min=20,
+                    max=500,
+                    value=20,
+                    step=1),
       actionButton("corr_sample","Get a Sample!")
     ),
     
     # main Panel
-    mainPanel( 
-      
-      # Put scatterplot in the main panel
-      uiOutput("instructions"),
-      plotOutput(outputId = 'scatterplot'),
-      
+    mainPanel(
+      plotOutput("corr_scatterplot"),
       conditionalPanel("input.corr_sample", #only show if a sample has been taken
                        h2("Guess the correlation!"),
                        column(6, 
