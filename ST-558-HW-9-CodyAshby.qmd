@@ -1,0 +1,75 @@
+---
+title: "Introduction to Modeling"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+#Basic Modeling Practice
+
+To kick things off, we'll read in a data set from the UCI Machine Learning Repository. Note that some intervention was needed in order to read in the file properly.
+
+```{r}
+library(tidyverse)
+library(rsample)
+
+#The fileEncoding argument is required here; without it, an error occurs.
+bike_data=read.csv("https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",fileEncoding = "latin1")
+```
+
+##EDA
+
+1. Now, we can perform some EDA procedures on this data. We start with checking for any missing values.
+
+```{r}
+colSums(is.na(bike_data))
+```
+
+So far so good; no missing values have been found in any of these variables.
+
+2. Next, we can check the column types and the values within these columns using the `summary` function:
+
+```{r}
+summary(bike_data)
+```
+
+Again, everything appears to make sense. As a precaution, we'll make some adjustments to these variables, including but not limited to renaming them.
+
+3. From the `lubridate` package, we'll convert the `Date` variable, which is initally a character-type variable, into an actual date that can be used for our analysis.
+
+```{r}
+bike_data$Date <- dmy(bike_data$Date)
+```
+
+4. The remaining character variables (`Seasons`, `Holiday`, `Functioning Day`) will now be turned into categorical variables.
+
+```{r}
+bike_data$Seasons <- factor(bike_data$Seasons,levels=c("Spring","Summer","Autumn","Winter"))
+bike_data$Holiday <- as.factor(bike_data$Holiday)
+#bike_data$Holiday <- factor(bike_data$Holiday,levels=c(0,1),labels=c("No Holiday","Holiday"))
+bike_data$Functioning.Day <- as.factor(bike_data$Functioning.Day)
+#bike_data$Functioning.Day <- factor(bike_data$Functioning.Day,levels=c(0,1),labels=c("No","Yes"))
+```
+
+5. Now, we can rename these variables for (hopeful) simplicity of typing and ease of reading.
+
+```{r}
+```
+
+6. Some further in-depth summary statistics for these variables are shown below:
+
+```{r}
+```
+
+7. 
+
+```{r}
+```
+
+8. 
+
+```{r}
+```
+
+##Splitting the Data
+
