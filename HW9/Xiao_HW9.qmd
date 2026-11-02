@@ -3,8 +3,6 @@ title: "ST 558 HW 9"
 format: html
 editor: visual
 ---
-
-# ST558 HW 9
 ## Stanley Xiao
 
 ### First we load the dataset
@@ -26,11 +24,19 @@ glimpse(bike_raw)
 ### EDA
 
 ```{r}
-# Check for missing values; there are no missing values
+summary(bike_raw)
+sapply(bike_raw, class)
 colSums(is.na(bike_raw))
+unique(bike_raw$Seasons)
+unique(bike_raw$Holiday)
+unique(bike_raw$`Functioning Day`)
 ```
 
+The dataset contains 8,760 hourly observations across 365 dates. Hourly bike rentals average 704.6, ranging from 0 to 3,556. Temperatures range from -17.8 Celsius to 39.4 Celsius, while rainfall and snowfall are typically 0. Date and categorical variables require conversion before further analysis. There are no missing values across all fields.
+
 ### Data Cleaning & Transformations
+
+We rename columns to lower snake case for easier manipulation, parse the `date` variable using `lubridate::dmy()`, and convert categorical columns to factors.
 
 ```{r}
 bike_clean <- bike_raw |>
@@ -51,7 +57,7 @@ bike_clean <- bike_raw |>
     functioning_day = `Functioning Day`
   ) |>
   mutate(
-    data = dmy(date),
+    date = dmy(date),
     seasons = factor(seasons),
     holiday = factor(holiday),
     functioning_day = factor(functioning_day)
@@ -61,6 +67,8 @@ str(bike_clean)
 ```
 
 ### Functioning Day Inspection & Subsetting
+
+Evaluate rental demand by functioning day status.
 
 ```{r}
 bike_clean |>
@@ -72,29 +80,20 @@ bike_clean |>
     max_rentals = max(bike_count)
   )
 
+unique(bike_clean$functioning_day)
+
 bike_functional <- bike_clean |>
   filter(functioning_day == "Yes")
-
-bike_daily <- bike_functional |>
-  group_by(date,seasons, holiday) |>
-  summarise(
-    bike_count = sum(bike_count),
-    rainfall = sum(rainfall),
-    snowfall = sum(snowfall),
-    across(
-      c(temp, humidity, wind_speed, visibility, dew_point_temp, solar_radiation),
-      mean,
-      .names = "{.col}"
-    ),
-    .groups = "drop"
-  )
 ```
+
+When functioning_day == 'No', rental counts are zero across all hours because the bike-sharing networked was closed for service. We remove non-functioning days so unserviced periods do not distort natural consumer weather demand.
 
 ### Hourly to Daily Aggregation
 
-```{r}
-# Group by date, seasons, and holiday, calculate sum of bike_count, rain and snowfall, calculate means of temp, humidity, wind_speed, visibility, dew_point_temp, and solar_radiation
+Group by date, seasons, and holiday, calculate sum of bike_count, rain and snowfall, calculate means of temp, humidity, wind_speed, visibility, dew_point_temp, and solar_radiation
 
+
+```{r}
 bike_daily <- bike_functional |>
   group_by(date, seasons, holiday) |>
   summarise(
@@ -112,6 +111,8 @@ bike_daily <- bike_functional |>
 
 ### Summary Statistics & Graphical Summaries
 
+We calculate summary metrics for daily bike counts broken down by season and holiday status.
+
 ```{r}
 bike_daily |>
   group_by(seasons, holiday) |>
@@ -119,7 +120,7 @@ bike_daily |>
     n_days = n(),
     mean_bikes = mean(bike_count),
     sd_bikes = sd(bike_count),
-    mean_bikes = median(bike_count),
+    median_bikes = median(bike_count),
     IQR_bikes = IQR(bike_count),
     .groups = "drop"
   )
@@ -139,7 +140,7 @@ ggplot(bike_daily, aes(x = seasons, y = bike_count, fill = seasons)) +
   )
 
 # Bike rentals vs temperature colored by season
-ggplot(bike_daily, aes(x = temp, y = bike_count, fill = seasons)) +
+ggplot(bike_daily, aes(x = temp, y = bike_count, color = seasons)) +
   geom_point(alpha = 0.8, size = 2) +
   geom_smooth(method = "loess", se = FALSE) +
   theme_minimal() +
@@ -150,6 +151,9 @@ ggplot(bike_daily, aes(x = temp, y = bike_count, fill = seasons)) +
   )
 ```
 
+Daily bike rentals vary substantially by season. Summer has the highest median rental count, followed by autumn and spring, while winter has the lowest. This suggests strong seasonal variation in bike rental demand.
+
+Bike rentals generally increase with temperature, although the relationship appears nonlinear. In summer, rentals tend to decline at higher temperatures, suggesting that extreme heat may reduce demand.
 
 ### Numeric Correlations
 
@@ -162,7 +166,11 @@ cor_matrix <- round(cor(numeric_vars), 3)
 cor_matrix
 ```
 
+Bike rentals are strongly positively correlated with temperature (r = 0.753), solar radiation (r = 0.736), and dew point temperature (r = 0.650). Rainfall (r = -0.239) and snowfall (r = -0.265) show weak negative correlations with rentals. Temperature and dew point temperature are also highly correlated (r = 0.963), suggesting potential multicollinearity.
+
 ### Data Splitting
+
+We split the daily dataset into a 75% training set and a 25% test set stratified on `seasons` using rsample::initial_split().
 
 ```{r}
 set.seed(558)
@@ -170,27 +178,140 @@ daily_split <- initial_split(bike_daily, prop = 0.75, strata = seasons)
 train_raw <- training(daily_split)
 test_raw <- testing(daily_split)
 
-# Verify split proportions and stratafication
+# Verify split proportions and stratification
 table(train_raw$seasons) / nrow(train_raw)
 table(test_raw$seasons) / nrow(test_raw)
 ```
 
+### Computing Mean/Std Dev for Numeric Predictors / Separate Weekend/Weekday from `date` using lubridate
 
+```{r}
+# Identify numeric predictor columns
+num_cols <- c("temp", "humidity", "wind_speed", "visibility", "dew_point_temp", "solar_radiation", "rainfall", "snowfall")
 
+# 1. Separate weekdays and weekends
+add_day_type <- function(df) {
+  df |>
+    mutate(
+      day_type = factor(if_else(wday(date) %in% c(1,7), "Weekend", "Weekday"))
+    )
+}
 
+train_prep <- add_day_type(train_raw)
+test_prep <- add_day_type(test_raw)
 
+# 2. Extract training means and sds
+train_means <- sapply(train_prep[num_cols], mean)
+train_sds <- sapply(train_prep[num_cols], sd)
 
+# 3. Standardize training set
+train_std <- train_prep
+train_std[num_cols] <- scale(train_prep[num_cols], center = train_means, scale = train_sds)
 
+# 4. Standardize test set using training parameters
+test_std <- test_prep
+for (col in num_cols) {
+  test_std[[col]] <- (test_prep[[col]]-train_means[[col]])/train_sds[[col]]
+}
+```
 
+### Fitting Multiple Linear Regression Models
 
+$$\text{RMSE} = \sqrt{\frac{1}{n_{\text{test}}} \sum_{i=1}^{n_{\text{test}}} (y_i-\hat{y}_i)^2}$$
 
+```{r}
+calc_rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+```
 
+### Model 1 : Main Effects
 
+Includes all standardized numeric predictors plus `seasons`, `holiday`, and `day_type`
 
+```{r}
+m1 <- lm(
+  bike_count ~ temp + humidity + wind_speed + visibility + dew_point_temp + solar_radiation + rainfall + snowfall + seasons + holiday + day_type,
+  data = train_std
+)
 
+pred_m1 <- predict(m1, newdata = test_std)
+rmse_m1 <- calc_rmse(test_std$bike_count, pred_m1)
+```
 
+### Model 2 : Interaction Terms
 
+Includes Model 1 terms plus interactions between:
 
+- seasons \*holiday
 
+- seasons \* temp
 
+- temp \* rainfall
 
+```{r}
+m2 <- lm(
+  bike_count ~ temp + humidity + wind_speed + visibility + dew_point_temp + solar_radiation + rainfall + snowfall + seasons + holiday + day_type + seasons:holiday + seasons:temp + temp:rainfall,
+  data = train_std
+)
+
+pred_m2 <- predict(m2, newdata = test_std)
+rmse_m2 <- calc_rmse(test_std$bike_count, pred_m2)
+```
+
+### Model 3 : Quadratic & Polynomial Terms
+
+Includes Model 2 terms plus quadratic terms for temperature and humidity
+
+```{r}
+m3 <- lm(
+  bike_count ~ temp + humidity + wind_speed + visibility + dew_point_temp + solar_radiation + rainfall + snowfall + seasons + holiday + day_type + seasons:holiday + seasons:temp + temp:rainfall + I(temp^2) + I(humidity^2),
+  data = train_std
+)
+
+pred_m3 <- predict(m3, newdata = test_std)
+rmse_m3 <- calc_rmse(test_std$bike_count, pred_m3)
+```
+
+### Model Comparison
+
+We compare test set RMSE values across all three specifications:
+
+```{r}
+tibble(
+  Model = c("Model 1 (Main Effects)", "Model 2 (Interactions)", "Model 3 (Interactions + Quadratics)"),
+  Test_RMSE = c(rmse_m1, rmse_m2, rmse_m3)
+)
+
+rmse_list <- c("Model 1" = rmse_m1, "Model 2" = rmse_m2, "Model 3" = rmse_m3)
+best_model_name <- names(which.min(rmse_list))
+best_model_name
+```
+
+### Final Model Fit on Full Dataset
+
+We select the model with the lowest test-set RMSE and refit it using the complete dataset. 
+
+```{r}
+# 1 Feature engineering on the full dataset
+full_prep <- add_day_type(bike_daily)
+
+# 2 Standardize using full-dataset mean and standard deviation
+full_means <- sapply(full_prep[num_cols], mean)
+full_sds <- sapply(full_prep[num_cols], sd)
+
+full_std <- full_prep
+full_std[num_cols] <- scale(full_prep[num_cols], center = full_means, scale = full_sds)
+
+# 3 Select winning model formula
+best_formula <- formula(list(m1, m2, m3)[[which.min(c(rmse_m1, rmse_m2, rmse_m3))]])
+
+# 4 Refit on full standardized dataset
+final_model <- lm(best_formula, data = full_std)
+
+# 4 Report coefficients and summary
+summary(final_model)
+coef(final_model)
+```
+
+We compared three multiple linear regression models using test-set RMSE. The model with the lowest RMSE was selected and refitted using the complete dataset, with numeric predictors standardized using full-dataset means and standard deviations.
