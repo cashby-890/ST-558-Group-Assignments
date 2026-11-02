@@ -88,12 +88,92 @@ bike_daily <- bike_functional |>
     ),
     .groups = "drop"
   )
+```
 
+### Hourly to Daily Aggregation
 
+```{r}
+# Group by date, seasons, and holiday, calculate sum of bike_count, rain and snowfall, calculate means of temp, humidity, wind_speed, visibility, dew_point_temp, and solar_radiation
+
+bike_daily <- bike_functional |>
+  group_by(date, seasons, holiday) |>
+  summarise(
+   bike_count = sum(bike_count),
+   rainfall = sum(rainfall),
+   snowfall = sum(snowfall),
+   across(
+     c(temp, humidity, wind_speed, visibility, dew_point_temp, solar_radiation),
+     mean,
+     .names = "{.col}"
+   ),
+   .groups = "drop"
+  )
+```
+
+### Summary Statistics & Graphical Summaries
+
+```{r}
+bike_daily |>
+  group_by(seasons, holiday) |>
+  summarise(
+    n_days = n(),
+    mean_bikes = mean(bike_count),
+    sd_bikes = sd(bike_count),
+    mean_bikes = median(bike_count),
+    IQR_bikes = IQR(bike_count),
+    .groups = "drop"
+  )
+```
+
+### Distribution & Relationships
+
+```{r}
+# Daily bike rentals by season
+ggplot(bike_daily, aes(x = seasons, y = bike_count, fill = seasons)) +
+  geom_boxplot(alpha = 0.7, show.legend = FALSE) + 
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rental Counts Across Seasons",
+    x = "Season",
+    y = "Total Daily Rentals"
+  )
+
+# Bike rentals vs temperature colored by season
+ggplot(bike_daily, aes(x = temp, y = bike_count, fill = seasons)) +
+  geom_point(alpha = 0.8, size = 2) +
+  geom_smooth(method = "loess", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rentals vs Average Daily Temperature",
+    x = "Temperature (°C)",
+    y = "Total Daily Rentals"
+  )
 ```
 
 
+### Numeric Correlations
 
+```{r}
+numeric_vars <- bike_daily |>
+  select(bike_count, rainfall, snowfall, temp, humidity, wind_speed, visibility, dew_point_temp, solar_radiation)
+
+# Correlation matrix
+cor_matrix <- round(cor(numeric_vars), 3)
+cor_matrix
+```
+
+### Data Splitting
+
+```{r}
+set.seed(558)
+daily_split <- initial_split(bike_daily, prop = 0.75, strata = seasons)
+train_raw <- training(daily_split)
+test_raw <- testing(daily_split)
+
+# Verify split proportions and stratafication
+table(train_raw$seasons) / nrow(train_raw)
+table(test_raw$seasons) / nrow(test_raw)
+```
 
 
 
