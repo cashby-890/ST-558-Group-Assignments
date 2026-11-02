@@ -1,0 +1,116 @@
+---
+title: "ST 558 HW 9"
+format: html
+editor: visual
+---
+
+# ST558 HW 9
+## Stanley Xiao
+
+### First we load the dataset
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(rsample)
+
+bike_raw <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv", 
+  locale = locale(encoding = "latin1"),
+  show_col_types = FALSE
+)
+
+glimpse(bike_raw)
+```
+
+### EDA
+
+```{r}
+# Check for missing values; there are no missing values
+colSums(is.na(bike_raw))
+```
+
+### Data Cleaning & Transformations
+
+```{r}
+bike_clean <- bike_raw |>
+  rename(
+    date = Date,
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    humidity = `Humidity(%)`,
+    wind_speed = `Wind speed (m/s)`,
+    visibility = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`,
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`,
+    seasons = Seasons,
+    holiday = Holiday,
+    functioning_day = `Functioning Day`
+  ) |>
+  mutate(
+    data = dmy(date),
+    seasons = factor(seasons),
+    holiday = factor(holiday),
+    functioning_day = factor(functioning_day)
+  )
+
+str(bike_clean)
+```
+
+### Functioning Day Inspection & Subsetting
+
+```{r}
+bike_clean |>
+  group_by(functioning_day) |>
+  summarise(
+    count_obs = n(),
+    mean_rentals = mean(bike_count),
+    min_rentals = min(bike_count),
+    max_rentals = max(bike_count)
+  )
+
+bike_functional <- bike_clean |>
+  filter(functioning_day == "Yes")
+
+bike_daily <- bike_functional |>
+  group_by(date,seasons, holiday) |>
+  summarise(
+    bike_count = sum(bike_count),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall),
+    across(
+      c(temp, humidity, wind_speed, visibility, dew_point_temp, solar_radiation),
+      mean,
+      .names = "{.col}"
+    ),
+    .groups = "drop"
+  )
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
