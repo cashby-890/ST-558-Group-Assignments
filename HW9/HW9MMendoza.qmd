@@ -1,0 +1,29 @@
+---
+title: "Homework 4"
+author: "Michael Mendoza"
+format: html
+editor: visual
+---
+
+# Setup/Misc.
+
+```{r}
+#| echo: false
+
+# Uncomment Librarys Required
+library(tidyverse)
+#library(readxl)
+#library(readr)
+#library(DBI)
+#library(RSQLite)
+#library(tidycensus)
+#library(jsonlite)
+#library(httr)
+library(lubridate)
+library(rsample)
+
+# Set seed for random data creation for replication
+set.seed(123)
+```
+
+## Task 1
