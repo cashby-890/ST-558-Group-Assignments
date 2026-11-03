@@ -75,7 +75,7 @@ bike_data |>
     stddev_rentals = sd(bike_count),
     median_rentals = median(bike_count),
     min_rentals = min(bike_count),
-    max_rentals = max(bike_count),
+    max_rentals = max(bike_count)
   )
 ```
 
