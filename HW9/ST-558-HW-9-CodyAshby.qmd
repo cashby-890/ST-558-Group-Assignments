@@ -10,66 +10,148 @@ editor: visual
 To kick things off, we'll read in a data set from the UCI Machine Learning Repository. Note that some intervention was needed in order to read in the file properly.
 
 ```{r}
+#Install, if necessary
 library(tidyverse)
 library(rsample)
 
 #The fileEncoding argument is required here; without it, an error occurs.
-bike_data=read.csv("https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",fileEncoding = "latin1")
+bikes_data=read.csv("https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",fileEncoding = "latin1")
 ```
 
 ##EDA
 
-1. Now, we can perform some EDA procedures on this data. We start with checking for any missing values.
+1.  Now, we can perform some EDA procedures on this data. We start with checking for any missing values.
 
 ```{r}
-colSums(is.na(bike_data))
+colSums(is.na(bikes_data))
 ```
 
 So far so good; no missing values have been found in any of these variables.
 
-2. Next, we can check the column types and the values within these columns using the `summary` function:
+2.  Next, we can check the column types and the values within these columns using the `summary` function:
 
 ```{r}
-summary(bike_data)
+summary(bikes_data)
 ```
 
 Again, everything appears to make sense. As a precaution, we'll make some adjustments to these variables, including but not limited to renaming them.
 
-3. From the `lubridate` package, we'll convert the `Date` variable, which is initally a character-type variable, into an actual date that can be used for our analysis.
+3.  From the `lubridate` package, we'll convert the `Date` variable, which is initally a character-type variable, into an actual date that can be used for our analysis.
 
 ```{r}
-bike_data$Date <- dmy(bike_data$Date)
+bikes_data$Date <- dmy(bikes_data$Date)
 ```
 
-4. The remaining character variables (`Seasons`, `Holiday`, `Functioning Day`) will now be turned into categorical variables.
+4.  The remaining character variables (`Seasons`, `Holiday`, `Functioning Day`) will now be turned into categorical variables.
 
 ```{r}
-bike_data$Seasons <- factor(bike_data$Seasons,levels=c("Spring","Summer","Autumn","Winter"))
-bike_data$Holiday <- as.factor(bike_data$Holiday)
+bikes_data$Seasons <- factor(bikes_data$Seasons,levels=c("Spring","Summer","Autumn","Winter"))
+bikes_data$Holiday <- as.factor(bikes_data$Holiday)
 #bike_data$Holiday <- factor(bike_data$Holiday,levels=c(0,1),labels=c("No Holiday","Holiday"))
-bike_data$Functioning.Day <- as.factor(bike_data$Functioning.Day)
+bikes_data$Functioning.Day <- as.factor(bikes_data$Functioning.Day)
 #bike_data$Functioning.Day <- factor(bike_data$Functioning.Day,levels=c(0,1),labels=c("No","Yes"))
 ```
 
-5. Now, we can rename these variables for (hopeful) simplicity of typing and ease of reading.
+5.  Now, we can rename these variables for (hopeful) simplicity of typing and ease of reading.
 
 ```{r}
+bikes_data |>
+  rename("date"="Date","count"="Rented.Bike.Count","hour"="Hour",
+         "temperature"="Temperature..C.","humidity"="Humidity...",
+         "wind_speed"="Wind.speed..m.s.","visibility"="Visibility..10m.",
+         "dew_point"="Dew.point.temperature..C.",
+         "radiation"="Solar.Radiation..MJ.m2.","rainfall"="Rainfall.mm.",
+         "snowfall"="Snowfall..cm.","season"="Seasons","holiday"="Holiday",
+         "functioning"="Functioning.Day")
 ```
 
-6. Some further in-depth summary statistics for these variables are shown below:
+6.  Some further in-depth summary statistics for these variables are shown below (with focus on bike rental count):
 
 ```{r}
+#Plan is to summarize all numeric variables, contingency tables for categorical variables, and grouped means of select numeric variables across categorical variables (e.g. average rainfall across the seasons)
+
+
 ```
 
-7. 
+7.  Summarizing across the hours
 
 ```{r}
+#Summarizing data across hours. First, grouping by date, seasons and holiday. Second, finding sum of bike-count, rainfall, and snowfall. Third, finding the mean of all other weather-related variables.
+
+new_bikes_data <- bikes_data |>
+  group_by(Date,Seasons,Holiday) |>
+  summarize("count" = sum(Rented.Bike.Count),
+            "rainfall" = sum(Rainfall.mm.),
+            "snowfall" = sum(Snowfall..cm.),
+            "temperature" = mean(Temperature..C.),
+            "humidity" = mean(Humidity...),
+            "windspeed" = mean(Wind.speed..m.s.),
+            "visibility" = mean(Visibility..10m.),
+            "dewpoint" = mean(Dew.point.temperature..C.),
+            "radiation" = mean(Solar.Radiation..MJ.m2.))
 ```
 
-8. 
+8. Recreating basic summary stats and creating plots to explore relationships. Correlations between numeric variables will be included.  
 
 ```{r}
+#Use new data frame to create basic summary stats and make plots to explore potential relationship. Special attention to correlation between all numeric variables.
 ```
 
 ##Splitting the Data
 
+```{r}
+bikes_split <- rsample::initial_split(new_bikes_data,prop=0.75,strata=Seasons)
+bikes_train=training(bikes_split)
+bikes_test=testing(bikes_split)
+```
+
+##Fitting MLR Models
+
+Use date variable to create weekday/weekend factor variable for both training and testing sets.
+Standardize numeric variables by subtracting training set mean and dividing by training set sd. Modify testing set variables by same process and metrics.
+
+```{r}
+#Converting date variable into binary type of categorical variable
+new_bikes_data |>
+  mutate(type_of_day = factor(ifelse(wday(Date) %in% c(1,7), "Weekend","Weekday")))
+
+new_bikes_train = bikes_train |>
+  mutate(type_of_day = factor(ifelse(wday(Date) %in% c(1,7), "Weekend","Weekday")))
+new_bikes_test = bikes_test |>
+  mutate(type_of_day = factor(ifelse(wday(Date) %in% c(1,7), "Weekend","Weekday")))
+
+#Isolate numeric variables
+numvars_one <- sapply(new_bikes_train,is.numeric)
+numvars_two <- sapply(new_bikes_test,is.numeric)
+numvars_all <- sapply(new_bikes_data,is.numeric)
+
+#Standardizing numeric variables for training set
+scaled_bikes_train <- new_bikes_train
+scaled_bikes_train[numvars_one] <- scale(new_bikes_train[numvars_one])
+  
+scaled_bikes_train_means <- sapply(scaled_bikes_train[numvars_one],mean)
+scaled_bikes_train_sds <- sapply(scaled_bikes_train[numvars_one],sd)
+
+scaled_bikes_test <- new_bikes_test
+scaled_bikes_test[numvars_two] <- scale(new_bikes_test[numvars_two],center=scaled_bikes_train_means,scale=scaled_bikes_train_sds)
+```
+
+Three models will be fitted:
+
+1. Model with all standardized numeric variables and season, holiday, and weekday/weekend.
+2. Model with terms from first model along with interactions between season and holiday, season and temp, temp and rainfall.
+3. Model with terms from second model and squared terms for temp and humidity.
+
+```{r}
+mod1 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+Seasons+Holiday+type_of_day,data=as.data.frame(scaled_bikes_train))
+
+mod2 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+Seasons+Holiday+type_of_day+Seasons:Holiday+Seasons:temperature+temperature:rainfall,data=as.data.frame(scaled_bikes_train))
+
+mod3 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+Seasons+Holiday+type_of_day+Seasons:Holiday+Seasons:temperature+temperature:rainfall+I(temperature^2)+I(humidity^2),data=as.data.frame(scaled_bikes_train))
+```
+
+Find test set RMSE for each model and determine which model minimizes this value. Use the entire data to fit selected model, and standardize using entire mean and sd for all data.
+
+```{r}
+# Coming Soon!
+```
