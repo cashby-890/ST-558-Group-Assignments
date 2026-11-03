@@ -39,12 +39,65 @@ bike_data <- read_csv(
 #check for missing Data
 colSums(is.na(bike_data))
 
+#general Summary Stats
+summary(bike_data)
+
 #DATA Clean up/Variable Renaming
-bike_data<- mutate(bike_data,
+bike_data <- mutate(bike_data,
     Date = dmy(Date),
     Seasons = factor(Seasons),
     Holiday = factor(Holiday),
-    'Functioning Day' = factor('Functioning Day')
-  ) 
+    `Functioning Day` = factor(`Functioning Day`)
+  ) |>
+  rename(
+    date = Date,
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    humidity = `Humidity(%)`,
+    wind_speed = `Wind speed (m/s)`,
+    visibility = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`,
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`,
+    seasons = Seasons,
+    holiday = Holiday,
+    functioning_day = `Functioning Day`
+  )
+
+#Summary statistics of Bike rentals grouped by Functioning Day
+bike_data |>
+  group_by(functioning_day) |>
+  summarise(
+    count_obs = n(),
+    mean_rentals = mean(bike_count),
+    stddev_rentals = sd(bike_count),
+    median_rentals = median(bike_count),
+    min_rentals = min(bike_count),
+    max_rentals = max(bike_count),
+  )
+```
+
+We can noticed from this that when "functioning_day" is the factor value of "No", no bikes were rented. we now decide to remove those occurrences from our original results.
+
+```{r}
+#create subsetted dataset
+bike_yes <- subset(bike_data, functioning_day == "Yes")
+
+#create sums of days by date, seasons, and holiday variables
+bike_subset1 <- bike_yes |>
+                  group_by(date, seasons, holiday) |>
+                    summarise(sum_bkcnt = sum(bike_count),
+                               sum_rf = sum(rainfall),
+                               sum_sf = sum(snowfall),
+                               mean_hr = mean(hour),
+                               mean_tmp = mean(temp),
+                               mean_humid = mean(humidity),
+                               mean_winds = mean(wind_speed),
+                               mean_vis = mean(visibility),
+                               mean_dptmp = mean(dew_point_temp),
+                               mean_slrad = mean(solar_radiation)
+                               )
 
 ```
