@@ -1,5 +1,5 @@
 ---
-title: "Homework 4"
+title: "Homework 9"
 author: "Michael Mendoza"
 format: html
 editor: visual
@@ -26,4 +26,25 @@ library(rsample)
 set.seed(123)
 ```
 
-## Task 1
+## Task 1: Reading in the DATA and EDA
+
+```{r}
+# Read in data
+bike_data <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv", 
+  locale = locale(encoding = "latin1"),
+  show_col_types = FALSE
+)
+
+#check for missing Data
+colSums(is.na(bike_data))
+
+#DATA Clean up/Variable Renaming
+bike_data<- mutate(bike_data,
+    Date = dmy(Date),
+    Seasons = factor(Seasons),
+    Holiday = factor(Holiday),
+    'Functioning Day' = factor('Functioning Day')
+  ) 
+
+```
