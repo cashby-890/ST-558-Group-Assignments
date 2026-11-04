@@ -1,0 +1,240 @@
+---
+title: "Riley_HW9"
+format: html
+editor_options: 
+  chunk_output_type: inline
+---
+
+Assignment Information\
+ST 558\
+Homework 9\
+Individual\
+Shannon Riley
+
+```{r}
+#| echo: false
+#| output: false
+# Load required packages
+library(dplyr)     # to perform basic EDA
+library(GGally)    # to produce correlations
+library(lubridate) # to use date format
+library(readr)     # to load in CSV files
+library(rsample)   # to split the data
+library(stringr)   # to fix variable names
+
+```
+
+# Data
+
+Load in the bike sharing rentals CSV file:
+```{r}
+bike <- read_csv('https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv', locale = readr::locale(encoding = "latin1"))
+```
+
+### Perform a basic EDA
+
+First, determine how missing values are coded in the dataset and check for missing values:
+```{r}
+bike |> summarize(across(everything(), ~ sum(is.na(.))))
+```
+Great, it looks like there are no missing values in any variable.
+
+Next, check the column types and the values within the columns to make sure they make sense:
+```{r}
+str(bike)
+summary(bike)
+```
+The column types look correct, although it would probably be useful to change *Date* and *Hour* to a time format and some of the character variables to factors. The summary statistics look reasonable.
+
+Convert the *Date* variable into a date format:
+```{r}
+bike <- bike |>
+  mutate(Date = dmy(Date))
+```
+
+Convert the character-type variables to factors:
+```{r}
+bike <- bike |>
+  mutate(Seasons = factor(Seasons, levels = c('Winter', 'Spring', 'Summer', 'Autumn')),
+         Holiday = as.factor(Holiday),
+         `Functioning Day` = as.factor(`Functioning Day`))
+```
+
+Rename the variables as needed to have coding-friendly names:
+```{r}
+bike <- bike |>
+  rename_with(str_to_camel)
+```
+
+Create summary statistics across the numeric and categorical variables:
+```{r}
+summary(bike)
+```
+
+The variable *functioningDay* describes whether the bike rental system is functioning or not, specifically as non-functional hours and functional hours. If we're interested in the count of bikes rented at each hour, zeroes from non-functioning hours represent a different case than zeroes during functioning hours, so we'll probably want to remove observations during non-functioning hours.
+
+Remove observations during non-functioning hours (only keep observations during functioning hours):
+```{r}
+bike <- bike |>
+  filter(functioningDay == 'Yes')
+```
+
+To simplify the analysis, combine all the hourly observations for each day to make one observation per day:\
+* Sum the bike_count, rainfall, and snowfall variables
+* Calculate the mean of the other weather-related variables
+```{r}
+bikeDay <- bike |>
+  group_by(date) |>
+  summarize(seasons = first(seasons),
+            holiday = first(holiday),
+            rentedBikeCount = mean(rentedBikeCount)*n(),
+            rainfall = mean(rainfallMm)*n(),
+            snowfall = mean(snowfallCm)*n(),
+            temperature = mean(temperatureC),
+            humidity = mean(humidity),
+            windspeed = mean(windSpeedMS),
+            visibility = mean(visibility10M),
+            dewpointTemperature = mean(dewPointTemperatureC),
+            solarRadiation = mean(solarRadiationMjM2)
+            )
+bikeDay
+```
+
+Recalculate the basic summary statistics:
+```{r}
+summary(bikeDay)
+```
+
+Create plots to explore relationships and report correlations between numeric variables:
+```{r}
+# Produce everything at once (easier to read when output in console rather than inline because there are so many variables)
+ggpairs(bikeDay)
+
+# Produce scatterplots (easier to read when output in console rather than inline because there are so many variables)
+plot((bikeDay |> select(where(~ is.numeric(.x)))))
+
+# A couple violin plots to focus on the bike count vs categorical variables
+ggplot(bikeDay, aes(x = seasons, y = rentedBikeCount)) +
+  geom_violin(quantile.linetype = c(2, 1, 2))
+ggplot(bikeDay, aes(x = holiday, y = rentedBikeCount)) +
+  geom_violin(quantile.linetype = c(2, 1, 2))
+
+# Correlation plot
+ggcorr(bikeDay |> select(where(~ is.numeric(.x))), label = TRUE)
+
+```
+
+# Modeling Prep
+
+In preparation for fitting models to the data, split the data into training and test sets (75/25 split), stratifying the split on the *seasons* variable:
+```{r}
+splitData <- initial_split(data = bikeDay,
+                           prop = 3/4,
+                           strata = seasons)
+```
+
+I haven't used this function before, so I'll double check the split of the data:
+```{r}
+nrow(training(splitData))
+nrow(testing(splitData))
+```
+
+Pull out the training and testing datasets from *splitData*:
+```{r}
+bikeTrain <- training(splitData)
+bikeTest <- testing(splitData)
+```
+
+
+
+# Fitting MLR Models
+
+Prep the data by converting the *date* variable to a factor with two levels, weekday and weekend:
+```{r}
+bikeTrain <- bikeTrain |>
+  mutate(wkDayEnd = wday(date, label = TRUE)) |>
+  mutate(wkDayEnd = factor(wkDayEnd, 
+                              levels = c('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'), 
+                              labels = c('weekend', rep('weekday', 5), 'weekend')))
+
+bikeTest <- bikeTest |>
+  mutate(wkDayEnd = wday(date, label = TRUE)) |>
+  mutate(wkDayEnd = factor(wkDayEnd, 
+                              levels = c('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'), 
+                              labels = c('weekend', rep('weekday', 5), 'weekend')))
+```
+
+Now, create standardized versions of the numeric variables:
+* Subtract training set mean
+* Divide by training set standard deviation
+```{r}
+bikeTrainZ <- bikeTrain |>
+  mutate(across(where(is.numeric),
+                ~ (.x - mean(.x))/sd(.x),
+                .names = "z_{.col}"))
+
+# Also modify the test set variables by standardizing them with the training set mean and standard deviation
+bikeTestZ <- bikeTest |>
+  mutate(across(where(is.numeric),
+                ~ (.x - mean(bikeTrain$.x))/sd(bikeTrain$.x),
+                .names = "z_{.col}"))
+```
+
+### Fit models
+
+Fit the following models to the testing dataset:\
+1. A model with all the standardized numeric variables included along with the seasons, holiday, and weekend/weekday variables:
+```{r}
+model1 <- lm(rentedBikeCount ~ z_rainfall + z_snowfall + z_temperature + z_humidity + z_windspeed + z_visibility + z_dewpointTemperature + z_solarRadiation + seasons + holiday + wkDayEnd, bikeTestZ)
+
+summary(model1)
+```
+
+2. A model with all the terms in the first model but also interactions between seasons and holiday, seasons and temp, and temp and rainfall (all standardized variables used here):
+```{r}
+model2 <- lm(rentedBikeCount ~ z_rainfall + z_snowfall + z_temperature + z_humidity + z_windspeed + z_visibility + z_dewpointTemperature + z_solarRadiation + seasons + holiday + wkDayEnd + seasons:holiday + seasons:z_temperature + z_temperature:z_rainfall, bikeTestZ)
+
+summary(model2)
+```
+
+3. A model with all the terms in the second model and also squared terms for the temp and humidity variables (standardized versions):
+```{r}
+model3 <- lm(rentedBikeCount ~ z_rainfall + z_snowfall + z_temperature + z_humidity + z_windspeed + z_visibility + z_dewpointTemperature + z_solarRadiation + seasons + holiday + wkDayEnd + seasons:holiday + seasons:z_temperature + z_temperature:z_rainfall + I(z_temperature^2) + I(z_humidity^2), bikeTestZ)
+
+summary(model3)
+```
+
+Now calculate and compare the RMSE for each model:
+```{r}
+sqrt(mean(model1$residuals^2))
+sqrt(mean(model2$residuals^2))
+sqrt(mean(model3$residuals^2))
+```
+The third model produces the lowest RMSE.
+
+Since the third model minimizes the test set RMSE, fit that model to the entire data set after standardizing the variables using the full data set:
+```{r}
+# Prep the data by converting the *date* variable to a factor with two levels, weekday and weekend:
+bikeFull <- bikeDay |>
+  mutate(wkDayEnd = wday(date, label = TRUE)) |>
+  mutate(wkDayEnd = factor(wkDayEnd, 
+                              levels = c('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'), 
+                              labels = c('weekend', rep('weekday', 5), 'weekend')))
+
+# Standardize the numeric variables:
+bikeFullZ <- bikeFull |>
+  mutate(across(where(is.numeric),
+                ~ (.x - mean(.x))/sd(.x),
+                .names = "z_{.col}"))
+
+# Fit the model:
+model3full <- lm(rentedBikeCount ~ z_rainfall + z_snowfall + z_temperature + z_humidity + z_windspeed + z_visibility + z_dewpointTemperature + z_solarRadiation + seasons + holiday + wkDayEnd + seasons:holiday + seasons:z_temperature + z_temperature:z_rainfall + I(z_temperature^2) + I(z_humidity^2), bikeFullZ)
+
+summary(model3full)
+```
+
+Report the coefficients of the final fitted model:
+```{r}
+coef(model3full)
+```
+
