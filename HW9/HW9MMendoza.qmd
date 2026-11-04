@@ -79,7 +79,7 @@ bike_data |>
   )
 ```
 
-We can noticed from this that when "functioning_day" is the factor value of "No", no bikes were rented. we now decide to remove those occurrences from our original results.
+We can noticed from this that when "functioning_day" is the factor value of "No", no bikes were rented. we now decide to remove those occurrences from our original results. The final dataset is then outputted as "bike_subset1".
 
 ```{r}
 #create subsetted dataset
@@ -97,7 +97,67 @@ bike_subset1 <- bike_yes |>
                                mean_winds = mean(wind_speed),
                                mean_vis = mean(visibility),
                                mean_dptmp = mean(dew_point_temp),
-                               mean_slrad = mean(solar_radiation)
+                               mean_slrad = mean(solar_radiation),
+                              .groups = "drop"
                                )
 
+#Summary stats (removing Date as it makes sense to analyze this date per season/holiday based on our set up. Date will likely be best used to measure changes over time).
+bike_subset1 |>
+  group_by(seasons, holiday) |>
+  summarise(
+    count_obs = n(),
+    mean_rentals = mean(sum_bkcnt),
+    stddev_rentals = sd(sum_bkcnt),
+    median_rentals = median(sum_bkcnt),
+    min_rentals = min(sum_bkcnt),
+    max_rentals = max(sum_bkcnt)
+  )
+
+```
+
+## Investigative plots
+
+Various outputs were created as an initial investigation into the data sets.
+
+```{r}
+#Boxplot of bike count by seasons
+ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = seasons)) +
+  geom_boxplot(alpha = 0.7, show.legend = FALSE) + 
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rental Counts Across Seasons",
+    x = "Season",
+    y = "Total Daily Rentals"
+  )
+
+#General bar plots
+  ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = holiday)) +
+    geom_col(position = "dodge") + 
+    theme_minimal() +
+    labs(
+      x = "Season",
+      y = "Total Daily Rentals",
+      fill = "Holiday status"
+    )
+
+#Bike Rentals over time Plot
+ggplot(bike_subset1, aes(x = date, y = sum_bkcnt, color = seasons)) +
+  geom_point(alpha = 0.8, size = 2) +
+  geom_smooth(method = "loess", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rentals Over Time by Seasons",
+    x = "Date",
+    y = "Total Daily Rentals"
+  )
+
+
+#Numeric Summaries
+numeric_vars <- bike_subset1 |>
+                  select(sum_bkcnt, starts_with("mean_")
+                         )
+
+#Correlation matrix 
+cor_matrix <- round(cor(numeric_vars), 4)
+cor_matrix
 ```
