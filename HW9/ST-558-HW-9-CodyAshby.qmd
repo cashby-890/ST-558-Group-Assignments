@@ -12,6 +12,7 @@ To kick things off, we'll read in a data set from the UCI Machine Learning Repos
 ```{r}
 #Install, if necessary
 library(tidyverse)
+library(ggplot2)
 library(rsample)
 
 #The fileEncoding argument is required here; without it, an error occurs.
@@ -47,15 +48,13 @@ bikes_data$Date <- dmy(bikes_data$Date)
 ```{r}
 bikes_data$Seasons <- factor(bikes_data$Seasons,levels=c("Spring","Summer","Autumn","Winter"))
 bikes_data$Holiday <- as.factor(bikes_data$Holiday)
-#bike_data$Holiday <- factor(bike_data$Holiday,levels=c(0,1),labels=c("No Holiday","Holiday"))
 bikes_data$Functioning.Day <- as.factor(bikes_data$Functioning.Day)
-#bike_data$Functioning.Day <- factor(bike_data$Functioning.Day,levels=c(0,1),labels=c("No","Yes"))
 ```
 
 5.  Now, we can rename these variables for (hopeful) simplicity of typing and ease of reading.
 
 ```{r}
-bikes_data |>
+bikes_data <- bikes_data |>
   rename("date"="Date","count"="Rented.Bike.Count","hour"="Hour",
          "temperature"="Temperature..C.","humidity"="Humidity...",
          "wind_speed"="Wind.speed..m.s.","visibility"="Visibility..10m.",
@@ -68,9 +67,41 @@ bikes_data |>
 6.  Some further in-depth summary statistics for these variables are shown below (with focus on bike rental count):
 
 ```{r}
-#Plan is to summarize all numeric variables, contingency tables for categorical variables, and grouped means of select numeric variables across categorical variables (e.g. average rainfall across the seasons)
+bikes_data |>
+  summarize(across(where(is.numeric),
+                   list(minimum = ~min(.x),
+                        median = ~median(.x),
+                        mean = ~mean(.x),
+                        maximum = ~max(.x),
+                        SD = ~sd(.x)),
+                   .names = "{.fn}_{.col}")) |>
+  pivot_longer(cols = everything(),
+               names_to = c("variable",".value"),
+               names_sep = "_")
 
+bikes_data |>
+  group_by(holiday,functioning) |>
+  summarize(count = n())
 
+bikes_data |>
+  group_by(season) |>
+  summarize(mean_count = mean(count),
+            mean_temp = mean(temperature),
+            mean_humidity = mean(humidity),
+            mean_windspeed = mean(wind_speed))
+
+bikes_data |>
+  group_by(functioning) |>
+  summarize(mean_count = mean(count),
+            min_count = min(count),
+            median_count = median(count),
+            max_count = max(count))
+```
+
+Notice that no bikes are rented during the non-functioning hours. As such, we'll remove those corresponding entries:
+
+```{r}
+real_bikes_data <- subset(bikes_data,functioning=="Yes")
 ```
 
 7.  Summarizing across the hours
@@ -78,23 +109,62 @@ bikes_data |>
 ```{r}
 #Summarizing data across hours. First, grouping by date, seasons and holiday. Second, finding sum of bike-count, rainfall, and snowfall. Third, finding the mean of all other weather-related variables.
 
-new_bikes_data <- bikes_data |>
-  group_by(Date,Seasons,Holiday) |>
-  summarize("count" = sum(Rented.Bike.Count),
-            "rainfall" = sum(Rainfall.mm.),
-            "snowfall" = sum(Snowfall..cm.),
-            "temperature" = mean(Temperature..C.),
-            "humidity" = mean(Humidity...),
-            "windspeed" = mean(Wind.speed..m.s.),
-            "visibility" = mean(Visibility..10m.),
-            "dewpoint" = mean(Dew.point.temperature..C.),
-            "radiation" = mean(Solar.Radiation..MJ.m2.))
+new_bikes_data <- real_bikes_data |>
+  group_by(date,season,holiday) |>
+  summarize("count" = sum(count),
+            "rainfall" = sum(rainfall),
+            "snowfall" = sum(snowfall),
+            "temperature" = mean(temperature),
+            "humidity" = mean(humidity),
+            "windspeed" = mean(wind_speed),
+            "visibility" = mean(visibility),
+            "dewpoint" = mean(dew_point),
+            "radiation" = mean(radiation))
 ```
 
 8. Recreating basic summary stats and creating plots to explore relationships. Correlations between numeric variables will be included.  
 
 ```{r}
 #Use new data frame to create basic summary stats and make plots to explore potential relationship. Special attention to correlation between all numeric variables.
+
+new_bikes_data |>
+  summarize(mean_count = mean(count),
+            mean_temp = mean(temperature),
+            mean_humidity = mean(humidity))
+
+new_bikes_numvars <- new_bikes_data |>
+  select(count,rainfall,snowfall,temperature,humidity,windspeed,visibility,dewpoint,radiation) 
+         
+bikes_numeric_cor <- cor(new_bikes_numvars[,3:11])
+bikes_numeric_cor
+```
+Right off the bat, we see some fairly strong correlation between the rental bike count and temperature, dew point, and radiation. However, there are plenty of places where multicollinearity could exist like the dew point vs. temperature and the dew point vs. humidity. In fact, the highest correlation is within the former pair. These will be demonstrated below.
+
+```{r}
+ggplot(new_bikes_data,aes(x=temperature,y=count,color=season))+
+  geom_point()
+```
+
+```{r}
+ggplot(new_bikes_data,aes(x=dewpoint,y=temperature)) +
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+
+```{r}
+ggplot(new_bikes_data,aes(count)) +
+  geom_histogram(bins=20)
+```
+
+```{r}
+ggplot(new_bikes_data,aes(temperature)) +
+  geom_histogram(bins=20)
+```
+
+```{r}
+ggplot(new_bikes_data,aes(humidity)) +
+  geom_histogram(bins=15)
 ```
 
 ##Splitting the Data
@@ -112,7 +182,7 @@ Standardize numeric variables by subtracting training set mean and dividing by t
 
 ```{r}
 #Converting date variable into binary type of categorical variable
-new_bikes_data |>
+updated_bikes_data <- new_bikes_data |>
   mutate(type_of_day = factor(ifelse(wday(Date) %in% c(1,7), "Weekend","Weekday")))
 
 new_bikes_train = bikes_train |>
@@ -123,7 +193,7 @@ new_bikes_test = bikes_test |>
 #Isolate numeric variables
 numvars_one <- sapply(new_bikes_train,is.numeric)
 numvars_two <- sapply(new_bikes_test,is.numeric)
-numvars_all <- sapply(new_bikes_data,is.numeric)
+numvars_all <- sapply(updated_bikes_data,is.numeric)
 
 #Standardizing numeric variables for training set
 scaled_bikes_train <- new_bikes_train
@@ -153,5 +223,18 @@ mod3 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewp
 Find test set RMSE for each model and determine which model minimizes this value. Use the entire data to fit selected model, and standardize using entire mean and sd for all data.
 
 ```{r}
-# Coming Soon!
+test_RMSE1 <- sqrt(mean((scaled_bikes_test$count - predict(mod1,scaled_bikes_test))^2))
+test_RMSE2 <- sqrt(mean((scaled_bikes_test$count - predict(mod2,scaled_bikes_test))^2))
+test_RMSE3 <- sqrt(mean((scaled_bikes_test$count - predict(mod3,scaled_bikes_test))^2))
+
+test_RMSE1
+test_RMSE2
+test_RMSE3
+```
+
+```{r}
+scaled_bikes_data <- updated_bikes_data
+scaled_bikes_data[numvars_all] <- scale(updated_bikes_data[numvars_all])
+
+mod_final <- lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+Seasons+Holiday+type_of_day+Seasons:Holiday+Seasons:temperature+temperature:rainfall,data=as.data.frame(scaled_bikes_data))
 ```
