@@ -91,7 +91,6 @@ bike_subset1 <- bike_yes |>
                     summarise(sum_bkcnt = sum(bike_count),
                                sum_rf = sum(rainfall),
                                sum_sf = sum(snowfall),
-                               mean_hr = mean(hour),
                                mean_tmp = mean(temp),
                                mean_humid = mean(humidity),
                                mean_winds = mean(wind_speed),
@@ -203,8 +202,8 @@ train_mean <- sapply(bike_train[num_name], mean)
 train_sd <- sapply(bike_train[num_name], sd)
 
 #Standardize training set
-standard <- bike_train
-standard[num_name] <- scale(bike_train[num_name], center = train_mean, scale = train_sd)
+train_std <- bike_train
+train_std[num_name] <- scale(bike_train[num_name], center = train_mean, scale = train_sd)
 
 #Standardize test set using training parameters
 test_std <- bike_test
@@ -222,4 +221,68 @@ Creates RMSE function for use later
 rmse <- function(actual, predicted) {
   sqrt(mean((actual - predicted)^2))
 }
+```
+
+## Model 1
+
+A model with all the standardized numeric variables included along with the seasons, holiday, and
+weekend/weekday variables.
+
+```{r}
+#creates object model_1
+model_1 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type,
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_1.pred <- predict(model_1, newdata = test_std)
+model_1.rmse <- rmse(test_std$sum_bkcnt, model_1.pred)
+
+#print outputs
+model_1.rmse
+```
+
+## Model 2
+
+A model with all the terms in the first model but also interactions between seasons and holiday, seasons
+and temp, and temp and rainfall
+
+```{r}
+#creates object model_2
+model_2 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type + seasons:holiday + 
+                seasons:mean_tmp + mean_tmp:sum_rf,
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_2.pred <- predict(model_2, newdata = test_std)
+model_2.rmse <- rmse(test_std$sum_bkcnt, model_2.pred)
+
+#print outputs
+model_2.rmse
+```
+
+## Model 3
+
+A model with all the terms in the second model and also squared terms for the temp and humidity
+variables
+
+```{r}
+
+#creates object model_2
+model_3 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type + seasons:holiday + 
+                seasons:mean_tmp + mean_tmp:sum_rf + I(mean_tmp^2) + 
+                I(mean_humid^2),
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_3.pred <- predict(model_3, newdata = test_std)
+model_3.rmse <- rmse(test_std$sum_bkcnt, model_3.pred)
+
+#print outputs
+model_3.rmse
 ```
