@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>ST 558 Fall 2026 Group 4 Homework 9</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-d0cfe7a3482e0d49a74229a8f3b76718.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ST 558 Fall 2026 Group 4 Homework 9</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Assignment Information<br>
+ST 558<br>
+Fall 2026<br>
+Homework 9<br>
+Group 4<br>
+</p>
+<section id="basic-modeling-practice" class="level1">
+<h1>Basic Modeling Practice</h1>
+<p>To kick things off, we’ll read in a data set from the UCI Machine Learning Repository. Note that some intervention was needed in order to read in the file properly.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>bike_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv"</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">locale =</span> <span class="fu">locale</span>(<span class="at">encoding =</span> <span class="st">"latin1"</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="perform-a-basic-eda" class="level2">
+<h2 class="anchored" data-anchor-id="perform-a-basic-eda">Perform a basic EDA</h2>
+<section id="explore-data" class="level3">
+<h3 class="anchored" data-anchor-id="explore-data">Explore data</h3>
+<p>First, determine how missing values are coded in the dataset and check for missing values:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(bike_raw))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     Date         Rented Bike Count                      Hour 
+                        0                         0                         0 
+          Temperature(°C)               Humidity(%)          Wind speed (m/s) 
+                        0                         0                         0 
+         Visibility (10m) Dew point temperature(°C)   Solar Radiation (MJ/m2) 
+                        0                         0                         0 
+             Rainfall(mm)             Snowfall (cm)                   Seasons 
+                        0                         0                         0 
+                  Holiday           Functioning Day 
+                        0                         0 </code></pre>
+</div>
+</div>
+<p>So far so good; no missing values have been found in any of these variables.</p>
+<p>Next, we can check the column types and the values within these columns using the <code>summary</code> function:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bike_raw)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Date      Rented Bike Count      Hour       Temperature(°C) 
+ Length   :8760   Min.   :   0.0    Min.   : 0.00   Min.   :-17.80  
+ N.unique : 365   1st Qu.: 191.0    1st Qu.: 5.75   1st Qu.:  3.50  
+ N.blank  :   0   Median : 504.5    Median :11.50   Median : 13.70  
+ Min.nchar:  10   Mean   : 704.6    Mean   :11.50   Mean   : 12.88  
+ Max.nchar:  10   3rd Qu.:1065.2    3rd Qu.:17.25   3rd Qu.: 22.50  
+                  Max.   :3556.0    Max.   :23.00   Max.   : 39.40  
+  Humidity(%)    Wind speed (m/s) Visibility (10m) Dew point temperature(°C)
+ Min.   : 0.00   Min.   :0.000    Min.   :  27     Min.   :-30.600          
+ 1st Qu.:42.00   1st Qu.:0.900    1st Qu.: 940     1st Qu.: -4.700          
+ Median :57.00   Median :1.500    Median :1698     Median :  5.100          
+ Mean   :58.23   Mean   :1.725    Mean   :1437     Mean   :  4.074          
+ 3rd Qu.:74.00   3rd Qu.:2.300    3rd Qu.:2000     3rd Qu.: 14.800          
+ Max.   :98.00   Max.   :7.400    Max.   :2000     Max.   : 27.200          
+ Solar Radiation (MJ/m2)  Rainfall(mm)     Snowfall (cm)          Seasons    
+ Min.   :0.0000          Min.   : 0.0000   Min.   :0.00000   Length   :8760  
+ 1st Qu.:0.0000          1st Qu.: 0.0000   1st Qu.:0.00000   N.unique :   4  
+ Median :0.0100          Median : 0.0000   Median :0.00000   N.blank  :   0  
+ Mean   :0.5691          Mean   : 0.1487   Mean   :0.07507   Min.nchar:   6  
+ 3rd Qu.:0.9300          3rd Qu.: 0.0000   3rd Qu.:0.00000   Max.nchar:   6  
+ Max.   :3.5200          Max.   :35.0000   Max.   :8.80000                   
+      Holiday      Functioning Day
+ Length   :8760   Length   :8760  
+ N.unique :   2   N.unique :   2  
+ N.blank  :   0   N.blank  :   0  
+ Min.nchar:   7   Min.nchar:   2  
+ Max.nchar:  10   Max.nchar:   3  
+                                  </code></pre>
+</div>
+</div>
+<p>The column types look correct, although it would probably be useful to change <em>Date</em> and <em>Hour</em> to a time format and some of the character variables to factors. The summary statistics look reasonable.</p>
+</section>
+<section id="clean-data" class="level3">
+<h3 class="anchored" data-anchor-id="clean-data">Clean data</h3>
+<p>From the <code>lubridate</code> package, we’ll convert the <code>Date</code> variable, which is initally a character-type variable, into an actual date that can be used for our analysis:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bikeClean <span class="ot">&lt;-</span> bike_raw <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date =</span> <span class="fu">dmy</span>(Date))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The remaining character variables (<code>Seasons</code>, <code>Holiday</code>, <code>Functioning Day</code>) will now be turned into categorical variables:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bikeClean <span class="ot">&lt;-</span> bikeClean <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Seasons =</span> <span class="fu">factor</span>(Seasons, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'Winter'</span>, <span class="st">'Spring'</span>, <span class="st">'Summer'</span>, <span class="st">'Autumn'</span>)),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">Holiday =</span> <span class="fu">as.factor</span>(Holiday),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Functioning Day</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">as.factor</span>(<span class="st">`</span><span class="at">Functioning Day</span><span class="st">`</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Rename the variables as needed to have coding-friendly names:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>bikeClean <span class="ot">&lt;-</span> bikeClean <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_with</span>(str_to_camel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Produce summary statistics of bike rentals grouped by Functioning Day:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bikeClean <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(functioningDay) <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">count_obs =</span> <span class="fu">n</span>(),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_rentals =</span> <span class="fu">mean</span>(rentedBikeCount),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">stddev_rentals =</span> <span class="fu">sd</span>(rentedBikeCount),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_rentals =</span> <span class="fu">median</span>(rentedBikeCount),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_rentals =</span> <span class="fu">min</span>(rentedBikeCount),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">max_rentals =</span> <span class="fu">max</span>(rentedBikeCount)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 7
+  functioningDay count_obs mean_rentals stddev_rentals median_rentals
+  &lt;fct&gt;              &lt;int&gt;        &lt;dbl&gt;          &lt;dbl&gt;          &lt;dbl&gt;
+1 No                   295           0              0               0
+2 Yes                 8465         729.           642.            542
+# ℹ 2 more variables: min_rentals &lt;dbl&gt;, max_rentals &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>From this we see that when “functioning_day” is the factor value of “No”, no bikes were rented. Therefore, we will remove those occurrences from our original results.</p>
+<p>But first, let’s check the summary statistics for the other variables:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bikeClean <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">list</span>(<span class="at">minimum =</span> <span class="sc">~</span><span class="fu">min</span>(.x),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">median =</span> <span class="sc">~</span><span class="fu">median</span>(.x),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">mean =</span> <span class="sc">~</span><span class="fu">mean</span>(.x),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                        <span class="at">maximum =</span> <span class="sc">~</span><span class="fu">max</span>(.x),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                        <span class="at">SD =</span> <span class="sc">~</span><span class="fu">sd</span>(.x)),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.names =</span> <span class="st">"{.fn}_{.col}"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"variable"</span>,<span class="st">".value"</span>),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_sep =</span> <span class="st">"_"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 11
+  variable rentedBikeCount  hour temperatureC humidity windSpeedMS visibility10M
+  &lt;chr&gt;              &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;
+1 minimum               0   0           -17.8      0          0              27 
+2 median              504. 11.5          13.7     57          1.5          1698 
+3 mean                705. 11.5          12.9     58.2        1.72         1437.
+4 maximum            3556  23            39.4     98          7.4          2000 
+5 SD                  645.  6.92         11.9     20.4        1.04          608.
+# ℹ 4 more variables: dewPointTemperatureC &lt;dbl&gt;, solarRadiationMjM2 &lt;dbl&gt;,
+#   rainfallMm &lt;dbl&gt;, snowfallCm &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Remove observations during non-functioning hours (only keep observations during functioning hours):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bikeFunctional <span class="ot">&lt;-</span> bikeClean <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(functioningDay <span class="sc">==</span> <span class="st">'Yes'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>To simplify the analysis, combine all the hourly observations for each day to make one observation per day:<br>
+</p>
+<ul>
+<li>Sum the bike_count, rainfall, and snowfall variables</li>
+<li>Calculate the mean of the other weather-related variables</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>bikeDaily <span class="ot">&lt;-</span> bikeFunctional <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(date, seasons, holiday) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>   <span class="at">bikeCount =</span> <span class="fu">sum</span>(rentedBikeCount),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>   <span class="at">rainfall =</span> <span class="fu">sum</span>(rainfallMm),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>   <span class="at">snowfall =</span> <span class="fu">sum</span>(snowfallCm),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>   <span class="fu">across</span>(</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>     <span class="fu">c</span>(temperatureC, humidity, windSpeedMS, visibility10M, dewPointTemperatureC, solarRadiationMjM2),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>     mean,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">.names =</span> <span class="st">"{.col}"</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>   ),</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>   <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>bikeDaily</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 353 × 12
+   date       seasons holiday  bikeCount rainfall snowfall temperatureC humidity
+   &lt;date&gt;     &lt;fct&gt;   &lt;fct&gt;        &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
+ 1 2017-12-01 Winter  No Holi…      9539      0        0        -2.45       45.9
+ 2 2017-12-02 Winter  No Holi…      8523      0        0         1.32       62.0
+ 3 2017-12-03 Winter  No Holi…      7222      4        0         4.88       81.5
+ 4 2017-12-04 Winter  No Holi…      8729      0.1      0        -0.304      52.5
+ 5 2017-12-05 Winter  No Holi…      8307      0        0        -4.46       36.4
+ 6 2017-12-06 Winter  No Holi…      6669      1.3      8.6       0.0458     70.8
+ 7 2017-12-07 Winter  No Holi…      8549      0       10.4       1.09       67.5
+ 8 2017-12-08 Winter  No Holi…      8032      0        0        -3.82       41.8
+ 9 2017-12-09 Winter  No Holi…      7233      0        0        -0.846      46  
+10 2017-12-10 Winter  No Holi…      3453      4.1     32.5       1.19       69.7
+# ℹ 343 more rows
+# ℹ 4 more variables: windSpeedMS &lt;dbl&gt;, visibility10M &lt;dbl&gt;,
+#   dewPointTemperatureC &lt;dbl&gt;, solarRadiationMjM2 &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Recalculate the basic summary statistics over all variables and for daily bike counts broken down by season and holiday status:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># All variables</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(bikeDaily)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      date              seasons         holiday      bikeCount    
+ Min.   :2017-12-01   Winter:90   Holiday   : 17   Min.   :  977  
+ 1st Qu.:2018-02-27   Spring:90   No Holiday:336   1st Qu.: 6967  
+ Median :2018-05-28   Summer:92                    Median :18563  
+ Mean   :2018-05-28   Autumn:81                    Mean   :17485  
+ 3rd Qu.:2018-08-24                                3rd Qu.:26285  
+ Max.   :2018-11-30                                Max.   :36149  
+    rainfall         snowfall       temperatureC        humidity    
+ Min.   : 0.000   Min.   : 0.000   Min.   :-14.738   Min.   :22.25  
+ 1st Qu.: 0.000   1st Qu.: 0.000   1st Qu.:  3.304   1st Qu.:47.58  
+ Median : 0.000   Median : 0.000   Median : 13.738   Median :57.17  
+ Mean   : 3.576   Mean   : 1.863   Mean   : 12.776   Mean   :58.17  
+ 3rd Qu.: 0.500   3rd Qu.: 0.000   3rd Qu.: 22.592   3rd Qu.:67.71  
+ Max.   :95.500   Max.   :78.700   Max.   : 33.742   Max.   :95.88  
+  windSpeedMS     visibility10M    dewPointTemperatureC solarRadiationMjM2
+ Min.   :0.6625   Min.   : 214.3   Min.   :-27.750      Min.   :0.02917   
+ 1st Qu.:1.3042   1st Qu.:1087.0   1st Qu.: -5.188      1st Qu.:0.28333   
+ Median :1.6583   Median :1557.8   Median :  4.612      Median :0.56500   
+ Mean   :1.7261   Mean   :1434.0   Mean   :  3.954      Mean   :0.56773   
+ 3rd Qu.:1.9542   3rd Qu.:1874.3   3rd Qu.: 14.921      3rd Qu.:0.82000   
+ Max.   :4.0000   Max.   :2000.0   Max.   : 25.038      Max.   :1.21667   </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Focus on rented bike count</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>bikeDaily <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(seasons, holiday) <span class="sc">|&gt;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_days =</span> <span class="fu">n</span>(),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_bikes =</span> <span class="fu">mean</span>(bikeCount),</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sd_bikes =</span> <span class="fu">sd</span>(bikeCount),</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_bikes =</span> <span class="fu">median</span>(bikeCount),</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">IQR_bikes =</span> <span class="fu">IQR</span>(bikeCount),</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 7
+  seasons holiday    n_days mean_bikes sd_bikes median_bikes IQR_bikes
+  &lt;fct&gt;   &lt;fct&gt;       &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+1 Winter  Holiday         8      3759     1561.        3454.     1060.
+2 Winter  No Holiday     82      5574.    1757.        5609      2564 
+3 Spring  Holiday         3     15247.   10917.       13790     10844 
+4 Spring  No Holiday     87     18002.    8322.       17730     14224.
+5 Summer  Holiday         2     24532.    8438.       24532.     5966.
+6 Summer  No Holiday     90     24824.    7324.       25572.     9165 
+7 Autumn  Holiday         4     22754.    5642.       21705      5740 
+8 Autumn  No Holiday     77     22065.    6792.       23472     10734 </code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="create-exploratory-plots-and-calculate-correlations" class="level1">
+<h1>Create exploratory plots and calculate correlations</h1>
+<p>A couple violin plots to focus on the bike count vs categorical variables:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Seasons</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(bikeDaily, <span class="fu">aes</span>(<span class="at">x =</span> seasons, <span class="at">y =</span> bikeCount)) <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(<span class="at">quantile.linetype =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Season"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Total Daily Rentals"</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="group4_HW9_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Holiday</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(bikeDaily, <span class="fu">aes</span>(<span class="at">x =</span> holiday, <span class="at">y =</span> bikeCount)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(<span class="at">quantile.linetype =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Holiday?"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Total Daily Rentals"</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="group4_HW9_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Bike rentals vs temperature colored by season:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(bikeDaily, <span class="fu">aes</span>(<span class="at">x =</span> temperatureC, <span class="at">y =</span> bikeCount, <span class="at">color =</span> seasons)) <span class="sc">+</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Daily Bike Rentals vs Average Daily Temperature"</span>,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Temperature (°C)"</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Total Daily Rentals"</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="group4_HW9_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Daily bike rentals vary substantially by season. Summer has the highest median rental count, followed by autumn and spring, while winter has the lowest. This suggests strong seasonal variation in bike rental demand.</p>
+<p>Bike rentals generally increase with temperature, although the relationship appears nonlinear. In summer, rentals tend to decline at higher temperatures, suggesting that extreme heat may reduce demand.</p>
+<p>Produce scatterplots (easier to read when output in console rather than inline because there are so many variables):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>((bikeDaily <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">where</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x)))))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="group4_HW9_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Calculate correlations:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Numeric Variables</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>numeric_vars <span class="ot">&lt;-</span> bikeDaily <span class="sc">|&gt;</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">select</span>(bikeCount<span class="sc">:</span>solarRadiationMjM2)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Correlation matrix </span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>cor_matrix <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">cor</span>(numeric_vars), <span class="dv">4</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>cor_matrix</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     bikeCount rainfall snowfall temperatureC humidity
+bikeCount               1.0000  -0.2391  -0.2653       0.7531   0.0359
+rainfall               -0.2391   1.0000  -0.0231       0.1445   0.5286
+snowfall               -0.2653  -0.0231   1.0000      -0.2670   0.0654
+temperatureC            0.7531   0.1445  -0.2670       1.0000   0.4042
+humidity                0.0359   0.5286   0.0654       0.4042   1.0000
+windSpeedMS            -0.1929  -0.1017   0.0209      -0.2607  -0.2343
+visibility10M           0.1660  -0.2220  -0.1019       0.0023  -0.5592
+dewPointTemperatureC    0.6505   0.2646  -0.2096       0.9628   0.6320
+solarRadiationMjM2      0.7359  -0.3227  -0.2334       0.5503  -0.2744
+                     windSpeedMS visibility10M dewPointTemperatureC
+bikeCount                -0.1929        0.1660               0.6505
+rainfall                 -0.1017       -0.2220               0.2646
+snowfall                  0.0209       -0.1019              -0.2096
+temperatureC             -0.2607        0.0023               0.9628
+humidity                 -0.2343       -0.5592               0.6320
+windSpeedMS               1.0000        0.2060              -0.2877
+visibility10M             0.2060        1.0000              -0.1536
+dewPointTemperatureC     -0.2877       -0.1536               1.0000
+solarRadiationMjM2        0.0961        0.2714               0.3832
+                     solarRadiationMjM2
+bikeCount                        0.7359
+rainfall                        -0.3227
+snowfall                        -0.2334
+temperatureC                     0.5503
+humidity                        -0.2744
+windSpeedMS                      0.0961
+visibility10M                    0.2714
+dewPointTemperatureC             0.3832
+solarRadiationMjM2               1.0000</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot version</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggcorr</span>(bikeDaily <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="fu">where</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x))), <span class="at">label =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="group4_HW9_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Right off the bat, we see some fairly strong correlation between the rental bike count and temperature, dew point, and radiation. However, there are plenty of places where multicollinearity could exist like the dew point vs.&nbsp;temperature and the dew point vs.&nbsp;humidity. In fact, the highest correlation is within the former pair. These will be demonstrated below.</p>
+<section id="modeling-prep" class="level2">
+<h2 class="anchored" data-anchor-id="modeling-prep">Modeling Prep</h2>
+<p>In preparation for fitting models to the data, split the data into training and test sets (75/25 split), stratifying the split on the <em>seasons</em> variable:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">558</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>splitData <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(<span class="at">data =</span> bikeDaily,</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>                           <span class="at">prop =</span> <span class="dv">3</span><span class="sc">/</span><span class="dv">4</span>,</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">strata =</span> seasons)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>I haven’t used this function before, so I’ll double check the split of the data:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">training</span>(splitData))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 263</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(<span class="fu">testing</span>(splitData))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 90</code></pre>
+</div>
+</div>
+<p>Pull out the training and testing datasets from <em>splitData</em>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>bikeTrain <span class="ot">&lt;-</span> <span class="fu">training</span>(splitData)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>bikeTest <span class="ot">&lt;-</span> <span class="fu">testing</span>(splitData)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Prep the data by converting the <em>date</em> variable to a factor with two levels, weekday and weekend:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>bikeTrain <span class="ot">&lt;-</span> bikeTrain <span class="sc">|&gt;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>                <span class="fu">mutate</span>(</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dayType =</span> <span class="fu">factor</span>(<span class="fu">if_else</span>(<span class="fu">wday</span>(date) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">7</span>), </span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>                                            <span class="st">"Weekend"</span>, <span class="st">"Weekday"</span>))</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>bikeTest <span class="ot">&lt;-</span> bikeTest <span class="sc">|&gt;</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>                <span class="fu">mutate</span>(</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dayType =</span> <span class="fu">factor</span>(<span class="fu">if_else</span>(<span class="fu">wday</span>(date) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">7</span>), </span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>                                            <span class="st">"Weekend"</span>, <span class="st">"Weekday"</span>))</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>                )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now, create standardized versions of the numeric variables:<br>
+</p>
+<ul>
+<li>Subtract training set mean</li>
+<li>Divide by training set standard deviation</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>bikeTrainZ <span class="ot">&lt;-</span> bikeTrain <span class="sc">|&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span> (.x <span class="sc">-</span> <span class="fu">mean</span>(.x))<span class="sc">/</span><span class="fu">sd</span>(.x),</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">.names =</span> <span class="st">"z_{.col}"</span>))</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Also modify the test set variables by standardizing them with the training set mean and standard deviation</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>bikeTestZ <span class="ot">&lt;-</span> bikeTest <span class="sc">|&gt;</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span> (.x <span class="sc">-</span> <span class="fu">mean</span>(bikeTrain<span class="sc">$</span>.x))<span class="sc">/</span><span class="fu">sd</span>(bikeTrain<span class="sc">$</span>.x),</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">.names =</span> <span class="st">"z_{.col}"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="fitting-mlr-models" class="level1">
+<h1>Fitting MLR Models</h1>
+<p>Fit the following models to the testing dataset:<br>
+</p>
+<ol type="1">
+<li>Main Effects<br>
+A model with all the standardized numeric variables included along with the seasons, holiday, and weekend/weekday variables:</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>model1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(bikeCount <span class="sc">~</span> z_rainfall <span class="sc">+</span> z_snowfall <span class="sc">+</span> z_temperatureC <span class="sc">+</span> z_humidity <span class="sc">+</span> z_windSpeedMS <span class="sc">+</span> z_visibility10M <span class="sc">+</span> z_dewPointTemperatureC <span class="sc">+</span> z_solarRadiationMjM2 <span class="sc">+</span> seasons <span class="sc">+</span> holiday <span class="sc">+</span> dayType, bikeTrainZ)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = bikeCount ~ z_rainfall + z_snowfall + z_temperatureC + 
+    z_humidity + z_windSpeedMS + z_visibility10M + z_dewPointTemperatureC + 
+    z_solarRadiationMjM2 + seasons + holiday + dayType, data = bikeTrainZ)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9779.4 -2532.0   138.8  2381.0 11508.2 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)              9870.5     1411.9   6.991 2.50e-11 ***
+z_rainfall              -1890.1      330.4  -5.720 3.04e-08 ***
+z_snowfall               -275.2      270.6  -1.017 0.310124    
+z_temperatureC          -7942.3     4666.0  -1.702 0.089977 .  
+z_humidity              -4194.6     1776.6  -2.361 0.019000 *  
+z_windSpeedMS            -681.1      289.4  -2.353 0.019383 *  
+z_visibility10M          -335.6      356.3  -0.942 0.347209    
+z_dewPointTemperatureC  13750.4     5487.2   2.506 0.012853 *  
+z_solarRadiationMjM2     4325.2      465.7   9.288  &lt; 2e-16 ***
+seasonsSpring            2859.3     1139.5   2.509 0.012732 *  
+seasonsSummer            4472.8     1640.5   2.727 0.006855 ** 
+seasonsAutumn            8299.1     1073.2   7.733 2.60e-13 ***
+holidayNo Holiday        4687.7     1215.9   3.855 0.000147 ***
+dayTypeWeekend          -2755.1      561.3  -4.908 1.66e-06 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 4025 on 249 degrees of freedom
+Multiple R-squared:  0.8435,    Adjusted R-squared:  0.8354 
+F-statistic: 103.3 on 13 and 249 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Interaction Terms<br>
+A model with all the terms in the first model but also interactions between seasons and holiday, seasons and temp, and temp and rainfall (all standardized variables used here):</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(bikeCount <span class="sc">~</span> z_rainfall <span class="sc">+</span> z_snowfall <span class="sc">+</span> z_temperatureC <span class="sc">+</span> z_humidity <span class="sc">+</span> z_windSpeedMS <span class="sc">+</span> z_visibility10M <span class="sc">+</span> z_dewPointTemperatureC <span class="sc">+</span> z_solarRadiationMjM2 <span class="sc">+</span> seasons <span class="sc">+</span> holiday <span class="sc">+</span> dayType <span class="sc">+</span> seasons<span class="sc">:</span>holiday <span class="sc">+</span> seasons<span class="sc">:</span>z_temperatureC <span class="sc">+</span> z_temperatureC<span class="sc">:</span>z_rainfall, bikeTrainZ)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = bikeCount ~ z_rainfall + z_snowfall + z_temperatureC + 
+    z_humidity + z_windSpeedMS + z_visibility10M + z_dewPointTemperatureC + 
+    z_solarRadiationMjM2 + seasons + holiday + dayType + seasons:holiday + 
+    seasons:z_temperatureC + z_temperatureC:z_rainfall, data = bikeTrainZ)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-17842.8  -1585.8    280.7   1702.8   6935.4 
+
+Coefficients:
+                                 Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                      10455.19    1718.91   6.082 4.59e-09 ***
+z_rainfall                       -2183.68     353.48  -6.178 2.73e-09 ***
+z_snowfall                        -155.80     199.84  -0.780  0.43637    
+z_temperatureC                   -6379.18    3563.36  -1.790  0.07467 .  
+z_humidity                       -4203.83    1380.83  -3.044  0.00259 ** 
+z_windSpeedMS                     -454.17     217.01  -2.093  0.03741 *  
+z_visibility10M                     45.25     279.09   0.162  0.87134    
+z_dewPointTemperatureC           12498.36    4252.85   2.939  0.00361 ** 
+z_solarRadiationMjM2              3466.17     343.91  10.079  &lt; 2e-16 ***
+seasonsSpring                     3979.76    2475.76   1.607  0.10925    
+seasonsSummer                    23915.96    3923.49   6.096 4.27e-09 ***
+seasonsAutumn                     3639.46    2719.56   1.338  0.18207    
+holidayNo Holiday                 3772.51    1283.22   2.940  0.00360 ** 
+dayTypeWeekend                   -2313.77     407.65  -5.676 3.93e-08 ***
+seasonsSpring:holidayNo Holiday   -889.80    2240.36  -0.397  0.69159    
+seasonsSummer:holidayNo Holiday    218.98    3248.08   0.067  0.94631    
+seasonsAutumn:holidayNo Holiday   4902.75    2471.93   1.983  0.04846 *  
+z_temperatureC:seasonsSpring      5740.47    1296.22   4.429 1.44e-05 ***
+z_temperatureC:seasonsSummer    -16176.82    1644.64  -9.836  &lt; 2e-16 ***
+z_temperatureC:seasonsAutumn      1178.69    1336.69   0.882  0.37876    
+z_rainfall:z_temperatureC         -927.79     431.17  -2.152  0.03240 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2905 on 242 degrees of freedom
+Multiple R-squared:  0.9208,    Adjusted R-squared:  0.9142 
+F-statistic: 140.6 on 20 and 242 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<ol start="3" type="1">
+<li>Polynomial Terms<br>
+A model with all the terms in the second model and also squared terms for the temp and humidity variables (standardized versions):</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>model3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(bikeCount <span class="sc">~</span> z_rainfall <span class="sc">+</span> z_snowfall <span class="sc">+</span> z_temperatureC <span class="sc">+</span> z_humidity <span class="sc">+</span> z_windSpeedMS <span class="sc">+</span> z_visibility10M <span class="sc">+</span> z_dewPointTemperatureC <span class="sc">+</span> z_solarRadiationMjM2 <span class="sc">+</span> seasons <span class="sc">+</span> holiday <span class="sc">+</span> dayType <span class="sc">+</span> seasons<span class="sc">:</span>holiday <span class="sc">+</span> seasons<span class="sc">:</span>z_temperatureC <span class="sc">+</span> z_temperatureC<span class="sc">:</span>z_rainfall <span class="sc">+</span> <span class="fu">I</span>(z_temperatureC<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(z_humidity<span class="sc">^</span><span class="dv">2</span>), bikeTrainZ)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = bikeCount ~ z_rainfall + z_snowfall + z_temperatureC + 
+    z_humidity + z_windSpeedMS + z_visibility10M + z_dewPointTemperatureC + 
+    z_solarRadiationMjM2 + seasons + holiday + dayType + seasons:holiday + 
+    seasons:z_temperatureC + z_temperatureC:z_rainfall + I(z_temperatureC^2) + 
+    I(z_humidity^2), data = bikeTrainZ)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-17930.9  -1528.8    291.3   1706.9   7557.7 
+
+Coefficients:
+                                Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                       9216.6     2324.9   3.964 9.72e-05 ***
+z_rainfall                       -1899.1      368.8  -5.149 5.44e-07 ***
+z_snowfall                        -220.5      203.2  -1.085 0.278897    
+z_temperatureC                   -3932.4     4840.5  -0.812 0.417378    
+z_humidity                       -2381.2     1586.2  -1.501 0.134618    
+z_windSpeedMS                     -504.8      217.0  -2.326 0.020837 *  
+z_visibility10M                    119.3      277.9   0.429 0.667981    
+z_dewPointTemperatureC            6376.0     4966.4   1.284 0.200440    
+z_solarRadiationMjM2              3250.7      350.4   9.276  &lt; 2e-16 ***
+seasonsSpring                     6440.1     3203.4   2.010 0.045506 *  
+seasonsSummer                    24803.5     3913.7   6.338 1.15e-09 ***
+seasonsAutumn                     5423.8     3210.7   1.689 0.092469 .  
+holidayNo Holiday                 3438.8     1291.9   2.662 0.008298 ** 
+dayTypeWeekend                   -2424.8      405.5  -5.980 8.04e-09 ***
+I(z_temperatureC^2)               -700.7      855.5  -0.819 0.413573    
+I(z_humidity^2)                   -561.9      229.9  -2.444 0.015251 *  
+seasonsSpring:holidayNo Holiday   -992.0     2262.3  -0.438 0.661424    
+seasonsSummer:holidayNo Holiday    871.3     3239.4   0.269 0.788176    
+seasonsAutumn:holidayNo Holiday   5280.6     2452.8   2.153 0.032327 *  
+z_temperatureC:seasonsSpring      8497.2     2508.7   3.387 0.000825 ***
+z_temperatureC:seasonsSummer    -12026.4     4653.3  -2.584 0.010344 *  
+z_temperatureC:seasonsAutumn      3825.8     2721.7   1.406 0.161127    
+z_rainfall:z_temperatureC         -930.2      428.9  -2.169 0.031067 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2874 on 240 degrees of freedom
+Multiple R-squared:  0.9231,    Adjusted R-squared:  0.9161 
+F-statistic:   131 on 22 and 240 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Create RMSE function:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to calculate RMSE</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, predicted) {</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>(<span class="fu">mean</span>((actual <span class="sc">-</span> predicted)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Fit models and calculate RMSE:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 1</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>model1_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(model1, <span class="at">newdata =</span> bikeTestZ)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>model1_rmse <span class="ot">&lt;-</span> <span class="fu">rmse</span>(bikeTestZ<span class="sc">$</span>bikeCount, model1_pred)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 2</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>model2_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(model2, <span class="at">newdata =</span> bikeTestZ)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>model2_rmse <span class="ot">&lt;-</span> <span class="fu">rmse</span>(bikeTestZ<span class="sc">$</span>bikeCount, model2_pred)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 3</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>model3_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(model3, <span class="at">newdata =</span> bikeTestZ)</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>model3_rmse <span class="ot">&lt;-</span> <span class="fu">rmse</span>(bikeTestZ<span class="sc">$</span>bikeCount, model3_pred)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now compare the RMSE for each model and determine the best model (lowest RMSE):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Model 1 (Main Effects)"</span>, </span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Model 2 (Interactions)"</span>, </span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Model 3 (Interactions + Quadratics)"</span>),</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Test_RMSE =</span> <span class="fu">c</span>(model1_rmse, model2_rmse, model3_rmse)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  Model                               Test_RMSE
+  &lt;chr&gt;                                   &lt;dbl&gt;
+1 Model 1 (Main Effects)                  4205.
+2 Model 2 (Interactions)                  3098.
+3 Model 3 (Interactions + Quadratics)     3059.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>rmse_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Model 1"</span> <span class="ot">=</span> model1_rmse, </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Model 2"</span> <span class="ot">=</span> model2_rmse, </span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Model 3"</span> <span class="ot">=</span> model3_rmse)</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>best_model_name <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">which.min</span>(rmse_list))</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>best_model_name</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Model 3"</code></pre>
+</div>
+</div>
+<p>The third model produces the lowest RMSE.</p>
+<p>Since the third model minimizes the test set RMSE, fit that model to the entire data set after standardizing the variables using the full data set:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prep the data by converting the *date* variable to a factor with two levels, weekday and weekend:</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>bikeFull <span class="ot">&lt;-</span> bikeDaily <span class="sc">|&gt;</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>                <span class="fu">mutate</span>(</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">dayType =</span> <span class="fu">factor</span>(<span class="fu">if_else</span>(<span class="fu">wday</span>(date) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">7</span>), </span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                                            <span class="st">"Weekend"</span>, <span class="st">"Weekday"</span>))</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize the numeric variables:</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>bikeFullZ <span class="ot">&lt;-</span> bikeFull <span class="sc">|&gt;</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric),</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>                <span class="sc">~</span> (.x <span class="sc">-</span> <span class="fu">mean</span>(.x))<span class="sc">/</span><span class="fu">sd</span>(.x),</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">.names =</span> <span class="st">"z_{.col}"</span>))</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit the model:</span></span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>model3full <span class="ot">&lt;-</span> <span class="fu">lm</span>(bikeCount <span class="sc">~</span> z_rainfall <span class="sc">+</span> z_snowfall <span class="sc">+</span> z_temperatureC <span class="sc">+</span> z_humidity <span class="sc">+</span> z_windSpeedMS <span class="sc">+</span> z_visibility10M <span class="sc">+</span> z_dewPointTemperatureC <span class="sc">+</span> z_solarRadiationMjM2 <span class="sc">+</span> seasons <span class="sc">+</span> holiday <span class="sc">+</span> dayType <span class="sc">+</span> seasons<span class="sc">:</span>holiday <span class="sc">+</span> seasons<span class="sc">:</span>z_temperatureC <span class="sc">+</span> z_temperatureC<span class="sc">:</span>z_rainfall <span class="sc">+</span> <span class="fu">I</span>(z_temperatureC<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">I</span>(z_humidity<span class="sc">^</span><span class="dv">2</span>), bikeFullZ)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model3full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = bikeCount ~ z_rainfall + z_snowfall + z_temperatureC + 
+    z_humidity + z_windSpeedMS + z_visibility10M + z_dewPointTemperatureC + 
+    z_solarRadiationMjM2 + seasons + holiday + dayType + seasons:holiday + 
+    seasons:z_temperatureC + z_temperatureC:z_rainfall + I(z_temperatureC^2) + 
+    I(z_humidity^2), data = bikeFullZ)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-18279.3  -1373.3    186.8   1567.3   8284.5 
+
+Coefficients:
+                                Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                       9485.1     1946.5   4.873 1.71e-06 ***
+z_rainfall                       -2104.8      341.3  -6.166 2.04e-09 ***
+z_snowfall                        -193.3      172.7  -1.120  0.26372    
+z_temperatureC                   -3254.4     4321.3  -0.753  0.45192    
+z_humidity                       -1632.6     1349.2  -1.210  0.22710    
+z_windSpeedMS                     -460.4      178.9  -2.574  0.01050 *  
+z_visibility10M                    165.1      234.7   0.703  0.48233    
+z_dewPointTemperatureC            4232.3     4331.6   0.977  0.32924    
+z_solarRadiationMjM2              3045.9      302.4  10.073  &lt; 2e-16 ***
+seasonsSpring                     6672.3     2810.5   2.374  0.01817 *  
+seasonsSummer                    24237.8     2839.7   8.535 5.17e-16 ***
+seasonsAutumn                     8576.8     2491.2   3.443  0.00065 ***
+holidayNo Holiday                 2234.3     1098.8   2.033  0.04281 *  
+dayTypeWeekend                   -2364.8      342.6  -6.903 2.62e-11 ***
+I(z_temperatureC^2)              -1198.7      744.6  -1.610  0.10836    
+I(z_humidity^2)                   -449.7      195.6  -2.299  0.02215 *  
+seasonsSpring:holidayNo Holiday    216.1     2083.0   0.104  0.91742    
+seasonsSummer:holidayNo Holiday   1530.9     2335.5   0.655  0.51261    
+seasonsAutumn:holidayNo Holiday   3107.4     1849.4   1.680  0.09387 .  
+z_temperatureC:seasonsSpring      9850.9     2194.3   4.489 9.89e-06 ***
+z_temperatureC:seasonsSummer     -9739.3     4049.7  -2.405  0.01672 *  
+z_temperatureC:seasonsAutumn      5097.7     2472.8   2.062  0.04004 *  
+z_rainfall:z_temperatureC         -521.3      370.1  -1.408  0.15997    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2860 on 330 degrees of freedom
+Multiple R-squared:  0.9224,    Adjusted R-squared:  0.9172 
+F-statistic: 178.2 on 22 and 330 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>Report the coefficients of the final fitted model:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(model3full)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    (Intercept)                      z_rainfall 
+                      9485.0891                      -2104.7561 
+                     z_snowfall                  z_temperatureC 
+                      -193.3446                      -3254.4212 
+                     z_humidity                   z_windSpeedMS 
+                     -1632.6400                       -460.4092 
+                z_visibility10M          z_dewPointTemperatureC 
+                       165.0545                       4232.3095 
+           z_solarRadiationMjM2                   seasonsSpring 
+                      3045.8746                       6672.3172 
+                  seasonsSummer                   seasonsAutumn 
+                     24237.8117                       8576.8462 
+              holidayNo Holiday                  dayTypeWeekend 
+                      2234.2654                      -2364.7662 
+            I(z_temperatureC^2)                 I(z_humidity^2) 
+                     -1198.7116                       -449.6524 
+seasonsSpring:holidayNo Holiday seasonsSummer:holidayNo Holiday 
+                       216.1366                       1530.9032 
+seasonsAutumn:holidayNo Holiday    z_temperatureC:seasonsSpring 
+                      3107.4003                       9850.9492 
+   z_temperatureC:seasonsSummer    z_temperatureC:seasonsAutumn 
+                     -9739.3201                       5097.7223 
+      z_rainfall:z_temperatureC 
+                      -521.2882 </code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
