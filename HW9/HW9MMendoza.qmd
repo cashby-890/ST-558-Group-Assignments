@@ -161,3 +161,65 @@ numeric_vars <- bike_subset1 |>
 cor_matrix <- round(cor(numeric_vars), 4)
 cor_matrix
 ```
+
+## Data Splinting (+Weekday/Weekend Factoring)
+
+Split the data into a test and training set. Then derive "day_type" as a factor indicator for a "Weekend" or "Weekday" day.
+
+```{r}
+#split the data
+data_split <- initial_split(bike_subset1, prop = 0.75, strata = seasons)
+bike_train <- training(data_split)
+bike_test <- testing(data_split)
+
+# Verify split proportions and stratification
+table(bike_train$seasons) / nrow(bike_train)
+table(bike_test$seasons) / nrow(bike_test)
+
+#Formating weekend/weekday
+bike_train <- bike_train |>
+                mutate(
+                  day_type = factor(if_else(wday(date) %in% c(1,7), 
+                                            "Weekend", "Weekday"))
+  )
+bike_test <- bike_test |>
+                mutate(
+                  day_type = factor(if_else(wday(date) %in% c(1,7), 
+                                            "Weekend", "Weekday"))
+                )
+```
+
+## Standardized Data
+
+Standardized Numeric Variables by subtracting its training set mean and dividing by its training set standard deviation.
+
+```{r}
+#Calculate Training Mean/stddev
+num_name <- bike_subset1 |>
+  select(starts_with("mean_")
+  ) |> 
+  colnames()
+train_mean <- sapply(bike_train[num_name], mean)
+train_sd <- sapply(bike_train[num_name], sd)
+
+#Standardize training set
+standard <- bike_train
+standard[num_name] <- scale(bike_train[num_name], center = train_mean, scale = train_sd)
+
+#Standardize test set using training parameters
+test_std <- bike_test
+for (x in num_name) {
+  test_std[[x]] <- (bike_test[[x]]-train_mean[[x]])/train_sd[[x]]
+}
+```
+
+## RMSE Function
+
+Creates RMSE function for use later
+
+```{r}
+#Function for RMSE
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+```
