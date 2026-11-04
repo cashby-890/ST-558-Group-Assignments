@@ -22,6 +22,6 @@ Welcome to our ST 558 Group Assignments repository. Below are links to our homew
 
 - \[Homework 8\] 10/21
 
-- \[Homework 9\] 11/2, 11/4
+- [Homework 9](https://cashby-890.github.io/ST-558-Group-Assignments/HW9/group4_HW9.html)
 
 - \[Homework 10\] 11/9, 11/11
