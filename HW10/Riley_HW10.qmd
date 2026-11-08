@@ -1,0 +1,226 @@
+---
+title: "Riley_HW10"
+format: html
+---
+
+Assignment Information\
+ST 558\
+Homework 10\
+Individual\
+Shannon Riley
+
+
+```{r}
+#| echo: false
+#| output: false
+# Load required packages
+library(dplyr)      # to perform basic EDA
+library(GGally)     # to produce correlations
+library(lubridate)  # to use date format
+library(readr)      # to load in CSV files
+library(stringr)    # to fix variable names
+library(tidymodels) # to create models
+
+```
+
+# Data
+
+Load in the bike sharing rentals CSV file:
+```{r}
+bike <- read_csv('https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv', locale = readr::locale(encoding = "latin1"))
+```
+
+### Perform a basic EDA
+This section is from Homework 9.
+
+First, determine how missing values are coded in the dataset and check for missing values:
+```{r}
+bike |> summarize(across(everything(), ~ sum(is.na(.))))
+```
+
+Next, check the column types and the values within the columns to make sure they make sense:
+```{r}
+str(bike)
+summary(bike)
+```
+
+Carry out the following pre-processeing steps:\
+* Remove observations during non-functioning hours (only keep observations during functioning hours)
+* Convert the *Date* variable into a date format
+* Convert the character-type variables to factors
+* Rename the variables as needed to have coding-friendly names
+```{r}
+bike <- bike |>
+  filter(`Functioning Day` == 'Yes') |>
+  mutate(Date = dmy(Date)) |>
+  mutate(Seasons = factor(Seasons, levels = c('Winter', 'Spring', 'Summer', 'Autumn')),
+         Holiday = as.factor(Holiday)) |>
+  rename_with(str_to_camel)
+```
+
+To simplify the analysis, combine all the hourly observations for each day to make one observation per day:\
+* Group by date, season, and holiday
+* Sum the bike_count, rainfall, and snowfall variables
+* Calculate the mean of the other weather-related variables
+```{r}
+bikeDaily <- bike |>
+  group_by(date, seasons, holiday) |>
+  summarise(
+   bikeCount = sum(rentedBikeCount),
+   rainfall = sum(rainfallMm),
+   snowfall = sum(snowfallCm),
+   across(
+     c(temperatureC, humidity, windSpeedMS, visibility10M, dewPointTemperatureC, solarRadiationMjM2),
+     mean,
+     .names = "{.col}"
+   ),
+   .groups = "drop"
+  )
+```
+
+Create plots to explore relationships and report correlations between numeric variables:
+```{r}
+# A few scatterplots to focus on bike count vs selected numeric variables
+ggplot(bikeDaily, aes(x = temperatureC, y = bikeCount)) +
+  geom_point()
+ggplot(bikeDaily, aes(x = rainfall, y = bikeCount)) +
+  geom_point()
+ggplot(bikeDaily, aes(x = solarRadiationMjM2, y = bikeCount)) +
+  geom_point()
+
+# A couple violin plots to focus on the bike count vs categorical variables
+ggplot(bikeDaily, aes(x = seasons, y = bikeCount)) +
+  geom_violin(quantile.linetype = c(2, 1, 2))
+ggplot(bikeDaily, aes(x = holiday, y = bikeCount)) +
+  geom_violin(quantile.linetype = c(2, 1, 2))
+
+# Correlation plot
+ggcorr(bikeDaily |> select(where(~ is.numeric(.x))), label = TRUE)
+
+```
+
+
+
+# Modeling
+
+### Data Splitting
+
+Split this single dataset into two, a training set and a testing set, with a 75/25 split, stratifying the split on the *seasons* variable:
+```{r}
+# Fix the random numbers by setting the seed 
+set.seed(222)
+
+# Put 3/4 of the data into the training set, stratify by season
+splitData <- initial_split(data = bikeDaily, 
+                            prop = 3/4, 
+                            strata = seasons)
+
+# Create data frames for the two sets
+bikeTrain <- training(splitData)
+bikeTest  <- testing(splitData)
+```
+
+Create a 10-fold cross-validation split on the training data:
+```{r}
+set.seed(333)
+trainFolds <- vfold_cv(bikeTrain, 10)
+```
+
+### Fitting MLR Models
+
+Create the first recipe (main effects):
+```{r}
+MLR_recipe1 <- 
+  recipe(bikeCount ~ ., data = bikeTrain) |> 
+  step_date(date, features = c("dow")) |>
+  step_mutate(dayType = factor(ifelse(date_dow %in% c('Sat', 'Sun'), 'weekend', 'weekday'))) |>
+  step_rm(date, date_dow) |>
+  step_normalize(all_numeric_predictors()) |>
+  step_dummy(seasons, holiday, dayType)
+```
+
+Create the second recipe (interactions):
+```{r}
+MLR_recipe2 <- 
+  recipe(bikeCount ~ ., data = bikeTrain) |> 
+  step_date(date, features = c("dow")) |>
+  step_mutate(dayType = factor(ifelse(date_dow %in% c('Sat', 'Sun'), 'weekend', 'weekday'))) |>
+  step_rm(date, date_dow) |>
+  step_normalize(all_numeric_predictors()) |>
+  step_dummy(seasons, holiday, dayType) |>
+  step_interact(~starts_with('seasons'):starts_with('holiday') + starts_with('seasons'):temperatureC + temperatureC:rainfall)
+```
+
+Create the third recipe (interactions and quadratics):
+```{r}
+MLR_recipe3 <- 
+  recipe(bikeCount ~ ., data = bikeTrain) |> 
+  step_date(date, features = c("dow")) |>
+  step_mutate(dayType = factor(ifelse(date_dow %in% c('Sat', 'Sun'), 'weekend', 'weekday'))) |>
+  step_rm(date, date_dow) |>
+  step_normalize(all_numeric_predictors()) |>
+  step_dummy(seasons, holiday, dayType) |>
+  step_interact(~starts_with('seasons'):starts_with('holiday') + starts_with('seasons'):temperatureC + temperatureC:rainfall) |>
+  step_poly(temperatureC, humidity)
+```
+
+Set up linear model fit to use the *lm* engine:
+```{r}
+MLR_spec <- linear_reg() |>
+  set_engine("lm")
+```
+
+Create workflows:
+```{r}
+MLR_wkf1 <- workflow() |>
+  add_recipe(MLR_recipe1) |>
+  add_model(MLR_spec)
+
+MLR_wkf2 <- workflow() |>
+  add_recipe(MLR_recipe2) |>
+  add_model(MLR_spec)
+
+MLR_wkf3 <- workflow() |>
+  add_recipe(MLR_recipe3) |>
+  add_model(MLR_spec)
+```
+
+
+Fit the models using 10-fold cross-validation:
+```{r}
+MLR_fit1 <-  MLR_wkf1 |>
+  fit_resamples(trainFolds)
+
+MLR_fit2 <- MLR_wkf2 |>
+  fit_resamples(trainFolds) 
+
+MLR_fit3 <- MLR_wkf3 |>
+  fit_resamples(trainFolds)
+```
+
+Compare the training set CV error to choose the best of the three models:
+```{r}
+rbind(MLR_fit1 |> collect_metrics() |> filter(.metric == "rmse"),
+      MLR_fit2 |> collect_metrics() |> filter(.metric == "rmse"),
+      MLR_fit3 |> collect_metrics() |> filter(.metric == "rmse")) |> 
+  mutate(Model = c("Model 1", "Model 2", "Model 3")) |>
+  select(Model, mean, n, std_err)
+```
+Based on the RMSE, the second model is the best.
+
+Fit this model to the entire training dataset:
+```{r}
+fullTrainFit <- last_fit(MLR_wkf2, split = splitData)
+```
+
+
+### Fitting Other Models
+
+
+```{r}
+```
+
+
+```{r}
+```
+
