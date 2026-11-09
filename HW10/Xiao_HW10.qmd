@@ -523,7 +523,79 @@ The random forest model was tuned using 10-fold cross-validation to select the b
 
 The selected random forest was then fitted to the entire training dataset. Its predictive performance will be compared with the MLR, regression tree, and bagged tree models using test-set RMSE and MAE.
 
+## Compare All Four Models on Test Set
 
+```{r}
+# Get predictions
+mlr_preds <- collect_predictions(final_mlr)
+
+tree_preds <- augment(
+  final_tree_fit,
+  new_data = bike_test
+)
+
+bag_preds <- augment(
+  final_bag_fit,
+  new_data = bike_test
+)
+
+rf_preds <- augment(
+  final_rf_fit,
+  new_data = bike_test
+)
+
+# Define evaluation metrics
+test_metrics <- metric_set(rmse, mae)
+
+# Calculate metrics for each model
+mlr_metrics <- test_metrics(
+  mlr_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "MLR")
+
+tree_metrics <- test_metrics(
+  tree_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Regression Tree")
+
+bag_metrics <- test_metrics(
+  bag_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Bagged Tree")
+
+rf_metrics <- test_metrics(
+  rf_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Random Forest")
+
+# Combine into one comparison table
+final_comparison <- bind_rows(
+  mlr_metrics,
+  tree_metrics,
+  bag_metrics,
+  rf_metrics
+)
+
+final_comparison |>
+  select(model, .metric, .estimate) |>
+  pivot_wider(
+    names_from = .metric,
+    values_from = .estimate
+  ) |>
+  arrange(rmse)
+```
+
+# Final Model Comparison
+
+The four models were evaluated on the test set using RMSE and MAE. The random forest performed best, with the lowest RMSE (2355.426) and MAE (1901.194), followed by the bagged tree, MLR, and regression tree. Overall, the ensemble tree methods outperformed the individual models, suggesting that combining multiple trees improves predictive accuracy for this dataset. The random forest was selected as the best overall model.
 
 
 
