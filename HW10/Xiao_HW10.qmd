@@ -460,13 +460,68 @@ final_bag_fit <- fit(
   final_bag_wf,
   data = bike_train
 )
-
-
 ```
 
 The bagged tree model was tuned using 10-fold cross-validation. The best tuning parameters were a cost complexity of 3.162278e-06, tree depth of 15, and minimum node size of 2. The selected model was then fitted to the entire training dataset. Its predictive performance will be evaluated on the test set and compared with the other models.
 
+```{r}
+rf_spec <- rand_forest(
+  mtry = tune(),
+  trees = tune(),
+  min_n = tune()
+) |>
+  set_engine("ranger", importance = "permutation") |>
+  set_mode("regression")
 
+# Create workflow using Recipe 1
+rf_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(rf_spec)
+
+# Create a smaller tuning grid
+rf_grid <- tidyr::crossing(
+  mtry = c(3L, 6L, 9L),
+  trees = c(100L, 300L),
+  min_n = c(2L, 10L)
+)
+
+# Tune using 10-fold cross validation
+set.seed(558)
+
+rf_tune <- tune_grid(
+  rf_wf,
+  resamples = bike_folds,
+  grid = rf_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(rf_tune)
+
+# Select best random forest based on RMSE
+best_rf <- select_best(
+  rf_tune,
+  metric = "rmse"
+)
+
+best_rf
+
+# Finalize workflow
+final_rf_wf <- finalize_workflow(
+  rf_wf,
+  best_rf
+)
+
+# Fit best random forest on training data
+final_rf_fit <- fit(
+  final_rf_wf,
+  data = bike_train
+)
+```
+
+The random forest model was tuned using 10-fold cross-validation to select the best combination of mtry, trees, and min_n. The optimal parameters were mtry = 9, trees = 100, and min_n = 10, based on the lowest cross-validation RMSE.
+
+The selected random forest was then fitted to the entire training dataset. Its predictive performance will be compared with the MLR, regression tree, and bagged tree models using test-set RMSE and MAE.
 
 
 
