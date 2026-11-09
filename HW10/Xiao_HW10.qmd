@@ -5,3 +5,711 @@ format: html
 editor: visual
 ---
 
+# Setting Up Code from Previous Assignment
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(rpart)
+library(rpart.plot)
+library(baguette)
+library(ranger)
+library(ggplot2)
+
+# ==========================================
+# READ AND CLEAN DATA
+# ==========================================
+
+bike_data <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",
+  locale = locale(encoding = "latin1")
+)
+
+# Check missing values
+bike_data |>
+  is.na() |>
+  colSums()
+
+# Check column types
+attributes(bike_data)$spec
+
+# Convert Date to date format
+bike_data <- bike_data |>
+  mutate(date = lubridate::dmy(Date)) |>
+  select(-Date)
+
+# Summary of variables
+summary(bike_data)
+
+# Check categorical variables
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data$`Functioning Day`)
+
+# Convert categorical variables to factors
+bike_data <- bike_data |>
+  mutate(
+    seasons = factor(Seasons),
+    holiday = factor(Holiday),
+    fn_day = factor(`Functioning Day`)
+  ) |>
+  select(-Seasons, -Holiday, -`Functioning Day`)
+
+# Rename variables
+bike_data <- bike_data |>
+  rename(
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    wind_speed = `Wind speed (m/s)`,
+    humidity = `Humidity(%)`,
+    vis = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`,
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`
+  )
+
+# Remove non-functioning days
+bike_data <- bike_data |>
+  filter(fn_day == "Yes") |>
+  select(-fn_day)
+
+# Aggregate hourly data into daily observations
+bike_data <- bike_data |>
+  group_by(date, seasons, holiday) |>
+  summarize(
+    bike_count = sum(bike_count),
+    temp = mean(temp),
+    humidity = mean(humidity),
+    wind_speed = mean(wind_speed),
+    vis = mean(vis),
+    dew_point_temp = mean(dew_point_temp),
+    solar_radiation = mean(solar_radiation),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall)
+  ) |>
+  ungroup()
+
+# View cleaned data
+bike_data
+
+# ==========================================
+# EXPLORATORY DATA ANALYSIS (EDA)
+# ==========================================
+
+# Overall summary statistics for bike_count
+bike_data |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by holiday
+bike_data |>
+  group_by(holiday) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by season
+bike_data |>
+  group_by(seasons) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by season and holiday
+bike_data |>
+  group_by(seasons, holiday) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Correlation matrix for numeric variables
+bike_data |>
+  select(where(is.numeric)) |>
+  cor() |>
+  round(3)
+
+# Bike count vs temperature
+ggplot(
+  bike_data,
+  aes(x = temp, y = bike_count)
+) +
+  geom_jitter(aes(color = seasons)) +
+  facet_grid(~holiday)
+
+# Bike count vs solar radiation
+ggplot(
+  bike_data,
+  aes(x = solar_radiation, y = bike_count)
+) +
+  geom_point(aes(color = seasons)) +
+  facet_grid(~holiday)
+
+```
+
+# HW 10 - Modeling Practice
+
+```{r}
+# ==========================================
+# HW 10: TRAIN / TEST SPLIT
+# ==========================================
+
+library(tidymodels)
+
+set.seed(558)
+
+bike_split <- initial_split(
+  bike_data,
+  prop = 0.75,
+  strata = seasons
+)
+
+bike_train <- training(bike_split)
+bike_test <- testing(bike_split)
+
+# 10-fold cross-validation on training data
+set.seed(558)
+
+bike_folds <- vfold_cv(
+  bike_train,
+  v = 10,
+  strata = seasons
+)
+
+# Main Effects
+rec1 <- recipe(bike_count ~., data = bike_train) |>
+  step_date(date, features = "dow", keep_original_cols = FALSE) |>
+  step_mutate(
+    day_type = factor(
+      if_else(
+        date_dow %in% c("Sat", "Sun"),
+        "Weekend", "Weekday"
+      )
+    )
+  ) |>
+  step_rm(date_dow) |>
+  step_normalize(all_numeric_predictors()) |>
+  step_dummy(all_nominal_predictors())
+
+# Recipe 2: Add Interactions
+rec2 <- rec1 |>
+  step_interact(
+    terms = ~ starts_with("seasons_"):starts_with("holiday_") +
+      starts_with("seasons_"):temp + temp:rainfall
+  )
+
+# Recipe 3: Add Quadratic Terms
+rec3 <- rec2 |>
+  step_mutate(
+    temp_sq = temp^2,
+    humidity_sq = humidity^2
+  )
+
+# Set up Linear Regression Model
+lm_spec <- linear_reg() |>
+  set_engine("lm")
+
+# Create Workflows
+wf1 <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(lm_spec)
+
+wf2 <- workflow() |>
+  add_recipe(rec2) |>
+  add_model(lm_spec)
+
+wf3 <- workflow() |>
+  add_recipe(rec3) |>
+  add_model(lm_spec)
+
+# Fit using 10-fold Cross-Validation
+set.seed(558)
+
+res1 <- fit_resamples(
+  wf1,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+res2 <- fit_resamples(
+  wf2,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+res3 <- fit_resamples(
+  wf3,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+# Compare Cross-Validation Results
+collect_metrics(res1)
+collect_metrics(res2)
+collect_metrics(res3)
+
+# Combined RMSE comparison
+mlr_results <- bind_rows(
+  collect_metrics(res1) |> mutate(model = "Model 1"),
+  collect_metrics(res2) |> mutate(model = "Model 2"),
+  collect_metrics(res3) |> mutate(model = "Model 3")
+)
+
+mlr_results |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+```
+
+Based on the 10-fold cross-validation results, Model 3 performed the best with the lowest RMSE of 3096.405 and MAE of 2320.155. This suggests that including the interaction and quadratic terms improves predictive performance compared with the simpler models. Model 3 was selected as the best multiple linear regression model.
+
+## Fit the Best MLR Model using last_fit()
+
+```{r}
+# Final MLR Model: Model 3
+
+# Select the MLR model with the lowest CV RMSE
+best_mlr_name <- mlr_results |>
+  filter(.metric == "rmse") |>
+  slice_min(mean, n = 1) |>
+  pull(model)
+
+mlr_workflows <- list(
+  "Model 1" = wf1,
+  "Model 2" = wf2,
+  "Model 3" = wf3
+)
+
+best_mlr_wf <- mlr_workflows[[best_mlr_name]]
+
+# View full regression summary
+final_mlr <- last_fit(
+  best_mlr_wf,
+  split = bike_split,
+  metrics = metric_set(rmse, mae)
+)
+
+# Display test metrics
+collect_metrics(final_mlr)
+
+# Display coefficient table
+final_mlr_wf <- extract_workflow(final_mlr)
+
+final_mlr_wf |>
+  extract_fit_parsnip() |>
+  tidy()
+
+# Display regression summary
+final_mlr_wf |>
+  extract_fit_parsnip() |>
+  pluck("fit") |>
+  summary()
+```
+
+The final model (model 3) achieved a test RMSE of 3059.349 and MAE of 2132.168. The training R-squared was 0.9231, indicating a strong fit of the training data.
+
+## Fit a Tuned Regression Tree
+
+```{r}
+# Regression Tree
+tree_spec <- decision_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+# Create workflow using Recipe 1
+tree_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(tree_spec)
+
+# Create tuning grid
+tree_grid <- grid_regular(
+  cost_complexity(),
+  tree_depth(),
+  min_n(),
+  levels = 3
+)
+
+# Tune using 10-fold cross-validation
+set.seed(558)
+
+tree_tune <- tune_grid(
+  tree_wf,
+  resamples = bike_folds,
+  grid = tree_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(tree_tune)
+
+# Select best tree based on RMSE
+best_tree <- select_best(
+  tree_tune,
+  metric = "rmse"
+)
+
+best_tree
+
+# Finalize workflow with best parameters
+final_tree_wf <- finalize_workflow(
+  tree_wf,
+  best_tree
+)
+
+# Fit final tree on entire training set
+final_tree_fit <- fit(
+  final_tree_wf,
+  data = bike_train
+)
+
+# Plot final regression tree
+final_tree_fit |>
+  extract_fit_engine() |>
+  rpart.plot()
+  
+```
+
+## Fit a Tuned Bagged Tree
+
+```{r}
+bag_spec <- bag_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart", times = 25) |>
+  set_mode("regression")
+
+# Create workflow using Recipe 1
+bag_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(bag_spec)
+
+# Create tuning grid
+bag_grid <- grid_regular(
+  cost_complexity(),
+  tree_depth(),
+  min_n(),
+  levels = 3
+)
+
+# Tune using 10-fold cross-validation
+set.seed(558)
+
+bag_tune <- tune_grid(
+  bag_wf,
+  resamples = bike_folds,
+  grid = bag_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(bag_tune)
+
+# Select best bagged tree based on RMSE
+best_bag <- select_best(
+  bag_tune,
+  metric = "rmse"
+)
+
+best_bag
+
+# Finalize workflow
+final_bag_wf <- finalize_workflow(
+  bag_wf,
+  best_bag
+)
+
+# Fit best bagged tree on entire training set
+final_bag_fit <- fit(
+  final_bag_wf,
+  data = bike_train
+)
+```
+
+The bagged tree model was tuned using 10-fold cross-validation. The best tuning parameters were a cost complexity of 3.162278e-06, tree depth of 15, and minimum node size of 2. The selected model was then fitted to the entire training dataset. Its predictive performance will be evaluated on the test set and compared with the other models.
+
+## Fit a Tuned Random Forest
+
+```{r}
+rf_spec <- rand_forest(
+  mtry = tune(),
+  trees = tune(),
+  min_n = tune()
+) |>
+  set_engine("ranger", importance = "permutation") |>
+  set_mode("regression")
+
+# Create workflow using Recipe 1
+rf_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(rf_spec)
+
+# Create a smaller tuning grid
+rf_grid <- tidyr::crossing(
+  mtry = c(3L, 6L, 9L),
+  trees = c(100L, 300L),
+  min_n = c(2L, 10L)
+)
+
+# Tune using 10-fold cross validation
+set.seed(558)
+
+rf_tune <- tune_grid(
+  rf_wf,
+  resamples = bike_folds,
+  grid = rf_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(rf_tune)
+
+# Select best random forest based on RMSE
+best_rf <- select_best(
+  rf_tune,
+  metric = "rmse"
+)
+
+best_rf
+
+# Finalize workflow
+final_rf_wf <- finalize_workflow(
+  rf_wf,
+  best_rf
+)
+
+# Fit best random forest on training data
+final_rf_fit <- fit(
+  final_rf_wf,
+  data = bike_train
+)
+```
+
+The random forest model was tuned using 10-fold cross-validation to select the best combination of mtry, trees, and min_n. The optimal parameters were mtry = 9, trees = 100, and min_n = 10, based on the lowest cross-validation RMSE.
+
+The selected random forest was then fitted to the entire training dataset. Its predictive performance will be compared with the MLR, regression tree, and bagged tree models using test-set RMSE and MAE.
+
+## Compare All Four Models on Test Set
+
+```{r}
+# Get predictions
+mlr_preds <- collect_predictions(final_mlr)
+
+tree_preds <- augment(
+  final_tree_fit,
+  new_data = bike_test
+)
+
+bag_preds <- augment(
+  final_bag_fit,
+  new_data = bike_test
+)
+
+rf_preds <- augment(
+  final_rf_fit,
+  new_data = bike_test
+)
+
+# Define evaluation metrics
+test_metrics <- metric_set(rmse, mae)
+
+# Calculate metrics for each model
+mlr_metrics <- test_metrics(
+  mlr_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "MLR")
+
+tree_metrics <- test_metrics(
+  tree_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Regression Tree")
+
+bag_metrics <- test_metrics(
+  bag_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Bagged Tree")
+
+rf_metrics <- test_metrics(
+  rf_preds,
+  truth = bike_count,
+  estimate = .pred
+) |>
+  mutate(model = "Random Forest")
+
+# Combine into one comparison table
+final_comparison <- bind_rows(
+  mlr_metrics,
+  tree_metrics,
+  bag_metrics,
+  rf_metrics
+)
+
+final_comparison |>
+  select(model, .metric, .estimate) |>
+  pivot_wider(
+    names_from = .metric,
+    values_from = .estimate
+  ) |>
+  arrange(rmse)
+```
+
+## Final Model Comparison
+
+The four models were evaluated on the test set using RMSE and MAE. The random forest performed best, with the lowest RMSE (2355.426) and MAE (1901.194), followed by the bagged tree, MLR, and regression tree. Overall, the ensemble tree methods outperformed the individual models, suggesting that combining multiple trees improves predictive accuracy for this dataset. The random forest was selected as the best overall model.
+
+## Variable Importance Plots
+
+```{r}
+# Calculate permutation importance
+perm_importance <- function(fitted_model, data) {
+  predictors <- setdiff(names(data), "bike_count")
+  
+  baseline <- predict(fitted_model, new_data = data) |>
+    bind_cols(data |> select(bike_count)) |>
+    rmse(truth = bike_count, estimate = .pred) |>
+    pull(.estimate)
+  
+  importance <- purrr::map_dfr(predictors, function(var) {
+    set.seed(558)
+    shuffled_data <- data
+    shuffled_data[[var]] <- sample(shuffled_data[[var]])
+    
+    shuffled_rmse <- predict(
+      fitted_model,
+      new_data = shuffled_data
+    ) |>
+      bind_cols(data |> select(bike_count)) |>
+      rmse(truth = bike_count, estimate = .pred) |>
+      pull(.estimate)
+    
+    tibble(
+      variable = var,
+      importance = shuffled_rmse - baseline
+    )
+  })
+  
+  importance |> arrange(desc(importance))
+}
+
+# Bagged tree variable importance
+bag_importance <- perm_importance(
+  final_bag_fit,
+  bike_train
+)
+
+# Random forest variable importance
+rf_importance <- perm_importance(
+  final_rf_fit,
+  bike_train
+)
+
+# Plot bagged tree importance
+ggplot(
+  bag_importance,
+  aes(x = reorder(variable, importance), y = importance)
+) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Increase in RMSE"
+  )
+
+# Plot random forest importance
+ggplot(
+  rf_importance,
+  aes(x = reorder(variable, importance), y = importance)
+) + 
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Predictor",
+    y = "Increase in RMSE"
+  )
+```
+
+## Variable Importance
+
+The variable importance plots show that temperature and solar radiation are the most influential predictors for both the bagged tree and random forest models, followed by season and rainfall. Permuting these variables resulted in larger increases in RMSE, suggesting that they contribute substantially to predictive accuracy. Snowfall and holiday status had relatively low importance in both models.
+
+## Fit Overall Best Model to Full Dataset
+
+```{r}
+overall_best_fit <- fit(
+  final_rf_wf,
+  data = bike_data
+)
+
+# Display final fitted model
+overall_best_fit
+
+# Extract fitted random forest engine
+overall_best_fit |>
+  extract_fit_engine()
+```
+
+# Conclusion
+
+Four models were evaluated using test-set RMSE and MAE: multiple linear regression, regression tree, bagged tree, and random forest. The random forest achieved the lowest prediction errors in the current analysis, followed by the bagged tree, MLR, and regression tree. These findings suggest that ensemble tree methods performed better for predicting daily bike rentals in this dataset.
+
+The random forest was selected as the overall best model based on its test-set RMSE of 2355.426 and MAE of 1901.194. The selected model was refitted using all 353 observations, with 100 trees, an mtry of 9, and a minimum node size of 10. The final model achieved an out-of-bag R-squared of approximately 0.9216616, indicating strong predictive performance.
