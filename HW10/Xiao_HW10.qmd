@@ -593,23 +593,103 @@ final_comparison |>
   arrange(rmse)
 ```
 
-# Final Model Comparison
+## Final Model Comparison
 
 The four models were evaluated on the test set using RMSE and MAE. The random forest performed best, with the lowest RMSE (2355.426) and MAE (1901.194), followed by the bagged tree, MLR, and regression tree. Overall, the ensemble tree methods outperformed the individual models, suggesting that combining multiple trees improves predictive accuracy for this dataset. The random forest was selected as the best overall model.
 
+## Variable Importance Plots
 
+```{r}
+# Calculate permutation importance
+perm_importance <- function(fitted_model, data) {
+  predictors <- setdiff(names(data), "bike_count")
+  
+  baseline <- predict(fitted_model, new_data = data) |>
+    bind_cols(data |> select(bike_count)) |>
+    rmse(truth = bike_count, estimate = .pred) |>
+    pull(.estimate)
+  
+  importance <- purrr::map_dfr(predictors, function(var) {
+    set.seed(558)
+    shuffled_data <- data
+    shuffled_data[[var]] <- sample(shuffled_data[[var]])
+    
+    shuffled_rmse <- predict(
+      fitted_model,
+      new_data = shuffled_data
+    ) |>
+      bind_cols(data |> select(bike_count)) |>
+      rmse(truth = bike_count, estimate = .pred) |>
+      pull(.estimate)
+    
+    tibble(
+      variable = var,
+      importance = shuffled_rmse - baseline
+    )
+  })
+  
+  importance |> arrange(desc(importance))
+}
 
+# Bagged tree variable importance
+bag_importance <- perm_importance(
+  final_bag_fit,
+  bike_train
+)
 
+# Random forest variable importance
+rf_importance <- perm_importance(
+  final_rf_fit,
+  bike_train
+)
 
+# Plot bagged tree importance
+ggplot(
+  bag_importance,
+  aes(x = reorder(variable, importance), y = importance)
+) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Bagged Tree Variable Importance",
+    x = "Predictor",
+    y = "Increase in RMSE"
+  )
 
+# Plot random forest importance
+ggplot(
+  rf_importance,
+  aes(x = reorder(variable, importance), y = importance)
+) + 
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Random Forest Variable Importance",
+    x = "Predictor",
+    y = "Increase in RMSE"
+  )
+```
 
+## Variable Importance
 
+The variable importance plot show that temperature and solar radiation are the most influential predictors for both the bagged tree and random forest models, followed by season and rainfall. Permuting these variables resulted in larger increases in RMSE, suggesting that they contribute substantially to predictive accuracy. Snowfall and holiday status had relatively low importance in both models.
 
+## Fit Overall Best Model to Full Dataset
 
+```{r}
+overall_best_fit <- fit(
+  final_rf_wf,
+  data = bike_data
+)
 
+# Display final fitted model
+overall_best_fit
 
+# Extract fitted random forest engine
+overall_best_fit |>
+  extract_fit_engine()
+```
 
+Four predictive models were fitted and evaluated: multiple linear regression, regression tree, bagged tree, and random forest. Based on test-set RMSE and MAE, the random forest achieved the best predictive performance, followed by the bagged tree, MLR, and regression tree.
 
-
-
-
+The random forest was selected as the overall best model based on its test-set RMSE of 2355.426 and MAE of 1901.194. The selected model was refitted using all 353 observations, with 100 trees, an mtry of 9, and a minimum node size of 10. The final model achieved an out-of-bag R-squared of approximately 0.922, indicating strong predictive performance.
