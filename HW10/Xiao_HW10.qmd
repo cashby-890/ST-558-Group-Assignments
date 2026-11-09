@@ -5,3 +5,323 @@ format: html
 editor: visual
 ---
 
+# Setting Up Code from Previous Assignment
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+
+# ==========================================
+# READ AND CLEAN DATA
+# ==========================================
+
+bike_data <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",
+  locale = locale(encoding = "latin1")
+)
+
+# Check missing values
+bike_data |>
+  is.na() |>
+  colSums()
+
+# Check column types
+attributes(bike_data)$spec
+
+# Convert Date to date format
+bike_data <- bike_data |>
+  mutate(date = lubridate::dmy(Date)) |>
+  select(-Date)
+
+# Summary of variables
+summary(bike_data)
+
+# Check categorical variables
+unique(bike_data$Seasons)
+unique(bike_data$Holiday)
+unique(bike_data$`Functioning Day`)
+
+# Convert categorical variables to factors
+bike_data <- bike_data |>
+  mutate(
+    seasons = factor(Seasons),
+    holiday = factor(Holiday),
+    fn_day = factor(`Functioning Day`)
+  ) |>
+  select(-Seasons, -Holiday, -`Functioning Day`)
+
+# Rename variables
+bike_data <- bike_data |>
+  rename(
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    wind_speed = `Wind speed (m/s)`,
+    humidity = `Humidity(%)`,
+    vis = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`,
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`
+  )
+
+# Remove non-functioning days
+bike_data <- bike_data |>
+  filter(fn_day == "Yes") |>
+  select(-fn_day)
+
+# Aggregate hourly data into daily observations
+bike_data <- bike_data |>
+  group_by(date, seasons, holiday) |>
+  summarize(
+    bike_count = sum(bike_count),
+    temp = mean(temp),
+    humidity = mean(humidity),
+    wind_speed = mean(wind_speed),
+    vis = mean(vis),
+    dew_point_temp = mean(dew_point_temp),
+    solar_radiation = mean(solar_radiation),
+    rainfall = sum(rainfall),
+    snowfall = sum(snowfall)
+  ) |>
+  ungroup()
+
+# View cleaned data
+bike_data
+
+# ==========================================
+# EXPLORATORY DATA ANALYSIS (EDA)
+# ==========================================
+
+# Overall summary statistics for bike_count
+bike_data |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by holiday
+bike_data |>
+  group_by(holiday) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by season
+bike_data |>
+  group_by(seasons) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Summary statistics by season and holiday
+bike_data |>
+  group_by(seasons, holiday) |>
+  summarize(
+    across(
+      bike_count,
+      .fns = c(
+        mean = mean,
+        median = median,
+        sd = sd,
+        IQR = IQR,
+        min = min,
+        max = max
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+
+# Correlation matrix for numeric variables
+bike_data |>
+  select(where(is.numeric)) |>
+  cor() |>
+  round(3)
+
+# Bike count vs temperature
+ggplot(
+  bike_data,
+  aes(x = temp, y = bike_count)
+) +
+  geom_jitter(aes(color = seasons)) +
+  facet_grid(~holiday)
+
+# Bike count vs solar radiation
+ggplot(
+  bike_data,
+  aes(x = solar_radiation, y = bike_count)
+) +
+  geom_point(aes(color = seasons)) +
+  facet_grid(~holiday)
+
+```
+
+# HW 10 - Modeling Practice
+
+```{r}
+# ==========================================
+# HW 10: TRAIN / TEST SPLIT
+# ==========================================
+
+library(tidymodels)
+
+set.seed(558)
+
+bike_split <- initial_split(
+  bike_data,
+  prop = 0.75,
+  strata = seasons
+)
+
+bike_train <- training(bike_split)
+bike_test <- testing(bike_split)
+
+# 10-fold cross-validation on training data
+set.seed(11)
+
+bike_folds <- vfold_cv(
+  bike_train,
+  v = 10,
+  strata = seasons
+)
+
+# Main Effects
+rec1 <- recipe(bike_count ~., data = bike_train) |>
+  step_date(date, features = "dow", keep_original_cols = FALSE) |>
+  step_mutate(
+    day_type = factor(
+      if_else(
+        date_dow %in% c("Sat", "Sun"),
+        "Weekend", "Weekday"
+      )
+    )
+  ) |>
+  step_rm(date_dow) |>
+  step_normalize(all_numeric_predictors()) |>
+  step_dummy(all_nominal_predictors())
+
+# Recipe 2: Add Interactions
+rec2 <- rec1 |>
+  step_interact(
+    terms = ~ starts_with("seasons_"):starts_with("holiday_") +
+      starts_with("seasons_"):temp + temp:rainfall
+  )
+
+# Recipe 3: Add Quadratic Terms
+rec3 <- rec2 |>
+  step_mutate(
+    temp_sq = temp^2,
+    humidity_sq = humidity^2
+  )
+
+# Set up Linear Regression Model
+lm_spec <- linear_reg() |>
+  set_engine("lm")
+
+# Create Workflows
+wf1 <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(lm_spec)
+
+wf2 <- workflow() |>
+  add_recipe(rec2) |>
+  add_model(lm_spec)
+
+wf3 <- workflow() |>
+  add_recipe(rec3) |>
+  add_model(lm_spec)
+
+# Fit using 10-fold Cross-Validation
+set.seed(558)
+
+res1 <- fit_resamples(
+  wf1,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+res2 <- fit_resamples(
+  wf2,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+res3 <- fit_resamples(
+  wf3,
+  resamples = bike_folds,
+  metrics = metric_set(rmse, mae)
+)
+
+# Compare Cross-Validation Results
+collect_metrics(res1)
+collect_metrics(res2)
+collect_metrics(res3)
+
+# Combined RMSE comparison
+mlr_results <- bind_rows(
+  collect_metrics(res1) |> mutate(model = "Model 1"),
+  collect_metrics(res2) |> mutate(model = "Model 2"),
+  collect_metrics(res3) |> mutate(model = "Model 3"),
+)
+
+mlr_results |>
+  filter(.metric == "rmse") |>
+  arrange(mean)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
