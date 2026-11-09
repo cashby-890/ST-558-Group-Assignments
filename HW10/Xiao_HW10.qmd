@@ -12,6 +12,8 @@ editor: visual
 library(tidyverse)
 library(tidymodels)
 library(lubridate)
+library(rpart)
+library(rpart.plot)
 
 # ==========================================
 # READ AND CLEAN DATA
@@ -302,6 +304,105 @@ mlr_results |>
   filter(.metric == "rmse") |>
   arrange(mean)
 ```
+
+Based on the 10-fold cross-validation results, Model 3 performed the best with the lowest RMSE of 3069.408 and MAE of 2323.075. This suggests that including the interaction and quadratic terms improves predictive performance compared with the simpler models. Model 3 was selected as the best multiple linear regression model.
+
+## Fit the Best MLR Model using last_fit()
+
+```{r}
+# Final MLR Model: Model 3
+
+final_mlr <- last_fit(
+  wf3,
+  split = bike_split,
+  metrics = metric_set(rmse, mae)
+)
+
+# View test set performance
+collect_metrics(final_mlr)
+
+# Extract final fitted workflow
+final_mlr_wf <- extract_workflow(final_mlr)
+
+# View coefficient table
+final_mlr_wf |>
+  extract_fit_parsnip() |>
+  tidy()
+
+# View full regression summary
+final_mlr_wf |>
+  extract_fit_parsnip() |>
+  pluck("fit") |>
+  summary()
+```
+
+The final model (model 3) achieved a test RMSE of 3059.349 and MAE of 2132.168. The training R-squared was 0.9231, indicating a strong fit of the training data.
+
+## Fit a Tuned Regression Tree
+
+```{r}
+# Regression Tree
+tree_spec <- decision_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart") |>
+  set_model("regression")
+
+# Create workflow using Recipe 1
+tree_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(tree_spec)
+
+# Create tuning grid
+tree_grid <- grid_regular(
+  cost_complexity(),
+  tree_depth(),
+  min_n(),
+  levels = 3
+)
+
+# Tune using 10-fold cross-validation
+set.seed(558)
+
+tree_tune <- tune_grid(
+  tree_wf,
+  resamples = bike_folds,
+  grid = tree_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(tree_tune)
+
+# Select best tree based on RMSE
+best_tree <- select_best(
+  tree_tune,
+  metric = "rmse"
+)
+
+best_tree
+
+# Finalize workflow with best parameters
+final_tree_wf <- finalize_workflow(
+  tree_wf,
+  best_tree
+)
+
+# Fit final tree on entire training set
+final_tree_fit <- fit(
+  final_tree_wf,
+  data = bike_train
+)
+
+# Plot final regression tree
+final_tree_fit |>
+  extract_fit_engine() |>
+  rpart.plot()
+  
+```
+
 
 
 
