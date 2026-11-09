@@ -216,7 +216,7 @@ bike_train <- training(bike_split)
 bike_test <- testing(bike_split)
 
 # 10-fold cross-validation on training data
-set.seed(11)
+set.seed(558)
 
 bike_folds <- vfold_cv(
   bike_train,
@@ -300,7 +300,7 @@ collect_metrics(res3)
 mlr_results <- bind_rows(
   collect_metrics(res1) |> mutate(model = "Model 1"),
   collect_metrics(res2) |> mutate(model = "Model 2"),
-  collect_metrics(res3) |> mutate(model = "Model 3"),
+  collect_metrics(res3) |> mutate(model = "Model 3")
 )
 
 mlr_results |>
@@ -308,31 +308,45 @@ mlr_results |>
   arrange(mean)
 ```
 
-Based on the 10-fold cross-validation results, Model 3 performed the best with the lowest RMSE of 3069.408 and MAE of 2323.075. This suggests that including the interaction and quadratic terms improves predictive performance compared with the simpler models. Model 3 was selected as the best multiple linear regression model.
+Based on the 10-fold cross-validation results, Model 3 performed the best with the lowest RMSE of 3096.405 and MAE of 2320.155. This suggests that including the interaction and quadratic terms improves predictive performance compared with the simpler models. Model 3 was selected as the best multiple linear regression model.
 
 ## Fit the Best MLR Model using last_fit()
 
 ```{r}
 # Final MLR Model: Model 3
 
+# Select the MLR model with the lowest CV RMSE
+best_mlr_name <- mlr_results |>
+  filter(.metric == "rmse") |>
+  slice_min(mean, n = 1) |>
+  pull(model)
+
+mlr_workflows <- list(
+  "Model 1" = wf1,
+  "Model 2" = wf2,
+  "Model 3" = wf3
+)
+
+best_mlr_wf <- mlr_workflows[[best_mlr_name]]
+
+# View full regression summary
 final_mlr <- last_fit(
-  wf3,
+  best_mlr_wf,
   split = bike_split,
   metrics = metric_set(rmse, mae)
 )
 
-# View test set performance
+# Display test metrics
 collect_metrics(final_mlr)
 
-# Extract final fitted workflow
+# Display coefficient table
 final_mlr_wf <- extract_workflow(final_mlr)
 
-# View coefficient table
 final_mlr_wf |>
   extract_fit_parsnip() |>
   tidy()
 
-# View full regression summary
+# Display regression summary
 final_mlr_wf |>
   extract_fit_parsnip() |>
   pluck("fit") |>
@@ -406,6 +420,8 @@ final_tree_fit |>
   
 ```
 
+## Fit a Tuned Bagged Tree
+
 ```{r}
 bag_spec <- bag_tree(
   cost_complexity = tune(),
@@ -463,6 +479,8 @@ final_bag_fit <- fit(
 ```
 
 The bagged tree model was tuned using 10-fold cross-validation. The best tuning parameters were a cost complexity of 3.162278e-06, tree depth of 15, and minimum node size of 2. The selected model was then fitted to the entire training dataset. Its predictive performance will be evaluated on the test set and compared with the other models.
+
+## Fit a Tuned Random Forest
 
 ```{r}
 rf_spec <- rand_forest(
@@ -672,7 +690,7 @@ ggplot(
 
 ## Variable Importance
 
-The variable importance plot show that temperature and solar radiation are the most influential predictors for both the bagged tree and random forest models, followed by season and rainfall. Permuting these variables resulted in larger increases in RMSE, suggesting that they contribute substantially to predictive accuracy. Snowfall and holiday status had relatively low importance in both models.
+The variable importance plots show that temperature and solar radiation are the most influential predictors for both the bagged tree and random forest models, followed by season and rainfall. Permuting these variables resulted in larger increases in RMSE, suggesting that they contribute substantially to predictive accuracy. Snowfall and holiday status had relatively low importance in both models.
 
 ## Fit Overall Best Model to Full Dataset
 
@@ -690,6 +708,8 @@ overall_best_fit |>
   extract_fit_engine()
 ```
 
-Four predictive models were fitted and evaluated: multiple linear regression, regression tree, bagged tree, and random forest. Based on test-set RMSE and MAE, the random forest achieved the best predictive performance, followed by the bagged tree, MLR, and regression tree.
+# Conclusion
 
-The random forest was selected as the overall best model based on its test-set RMSE of 2355.426 and MAE of 1901.194. The selected model was refitted using all 353 observations, with 100 trees, an mtry of 9, and a minimum node size of 10. The final model achieved an out-of-bag R-squared of approximately 0.922, indicating strong predictive performance.
+Four models were evaluated using test-set RMSE and MAE: multiple linear regression, regression tree, bagged tree, and random forest. The random forest achieved the lowest prediction errors in the current analysis, followed by the bagged tree, MLR, and regression tree. These findings suggest that ensemble tree methods performed better for predicting daily bike rentals in this dataset.
+
+The random forest was selected as the overall best model based on its test-set RMSE of 2355.426 and MAE of 1901.194. The selected model was refitted using all 353 observations, with 100 trees, an mtry of 9, and a minimum node size of 10. The final model achieved an out-of-bag R-squared of approximately 0.9216616, indicating strong predictive performance.
