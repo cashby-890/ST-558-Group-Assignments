@@ -14,6 +14,9 @@ library(tidymodels)
 library(lubridate)
 library(rpart)
 library(rpart.plot)
+library(baguette)
+library(ranger)
+library(ggplot2)
 
 # ==========================================
 # READ AND CLEAN DATA
@@ -348,7 +351,7 @@ tree_spec <- decision_tree(
   min_n = tune()
 ) |>
   set_engine("rpart") |>
-  set_model("regression")
+  set_mode("regression")
 
 # Create workflow using Recipe 1
 tree_wf <- workflow() |>
@@ -403,8 +406,65 @@ final_tree_fit |>
   
 ```
 
+```{r}
+bag_spec <- bag_tree(
+  cost_complexity = tune(),
+  tree_depth = tune(),
+  min_n = tune()
+) |>
+  set_engine("rpart", times = 25) |>
+  set_mode("regression")
+
+# Create workflow using Recipe 1
+bag_wf <- workflow() |>
+  add_recipe(rec1) |>
+  add_model(bag_spec)
+
+# Create tuning grid
+bag_grid <- grid_regular(
+  cost_complexity(),
+  tree_depth(),
+  min_n(),
+  levels = 3
+)
+
+# Tune using 10-fold cross-validation
+set.seed(558)
+
+bag_tune <- tune_grid(
+  bag_wf,
+  resamples = bike_folds,
+  grid = bag_grid,
+  metrics = metric_set(rmse, mae)
+)
+
+# View tuning results
+collect_metrics(bag_tune)
+
+# Select best bagged tree based on RMSE
+best_bag <- select_best(
+  bag_tune,
+  metric = "rmse"
+)
+
+best_bag
+
+# Finalize workflow
+final_bag_wf <- finalize_workflow(
+  bag_wf,
+  best_bag
+)
+
+# Fit best bagged tree on entire training set
+final_bag_fit <- fit(
+  final_bag_wf,
+  data = bike_train
+)
 
 
+```
+
+The bagged tree model was tuned using 10-fold cross-validation. The best tuning parameters were a cost complexity of 3.162278e-06, tree depth of 15, and minimum node size of 2. The selected model was then fitted to the entire training dataset. Its predictive performance will be evaluated on the test set and compared with the other models.
 
 
 
