@@ -1,0 +1,368 @@
+---
+title: "More Modeling Practice"
+author: "Cody Ashby"
+format: html
+editor: visual
+---
+
+The following portion (up to Extension) is leftovers from Homework Assignment 9.
+
+#Basic Modeling Practice
+
+To kick things off, we'll read in a data set from the UCI Machine Learning Repository. Note that some intervention was needed in order to read in the file properly.
+
+```{r}
+#Install, if necessary
+library(tidyverse)
+library(ggplot2)
+library(rsample)
+
+#The fileEncoding argument is required here; without it, an error occurs.
+bikes_data=read.csv("https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv",fileEncoding = "latin1")
+```
+
+##EDA
+
+1.  Now, we can perform some EDA procedures on this data. We start with checking for any missing values.
+
+```{r}
+colSums(is.na(bikes_data))
+```
+
+So far so good; no missing values have been found in any of these variables.
+
+2.  Next, we can check the column types and the values within these columns using the `summary` function:
+
+```{r}
+summary(bikes_data)
+```
+
+Again, everything appears to make sense. As a precaution, we'll make some adjustments to these variables, including but not limited to renaming them.
+
+3.  From the `lubridate` package, we'll convert the `Date` variable, which is initally a character-type variable, into an actual date that can be used for our analysis.
+
+```{r}
+bikes_data$Date = dmy(bikes_data$Date)
+```
+
+4.  The remaining character variables (`Seasons`, `Holiday`, `Functioning Day`) will now be turned into categorical variables.
+
+```{r}
+bikes_data$Seasons <- factor(bikes_data$Seasons,levels=c("Spring","Summer","Autumn","Winter"))
+bikes_data$Holiday <- as.factor(bikes_data$Holiday)
+bikes_data$Functioning.Day <- as.factor(bikes_data$Functioning.Day)
+```
+
+5.  Now, we can rename these variables for (hopeful) simplicity of typing and ease of reading.
+
+```{r}
+bikes_data <- bikes_data |>
+  rename("date"="Date","count"="Rented.Bike.Count","hour"="Hour",
+         "temperature"="Temperature..C.","humidity"="Humidity...",
+         "wind_speed"="Wind.speed..m.s.","visibility"="Visibility..10m.",
+         "dew_point"="Dew.point.temperature..C.",
+         "radiation"="Solar.Radiation..MJ.m2.","rainfall"="Rainfall.mm.",
+         "snowfall"="Snowfall..cm.","season"="Seasons","holiday"="Holiday",
+         "functioning"="Functioning.Day")
+```
+
+6.  Some further in-depth summary statistics for these variables are shown below (with focus on bike rental count):
+
+```{r}
+bikes_data |>
+  summarize(across(where(is.numeric),
+                   list(minimum = ~min(.x),
+                        median = ~median(.x),
+                        mean = ~mean(.x),
+                        maximum = ~max(.x),
+                        SD = ~sd(.x)),
+                   .names = "{.fn}_{.col}")) |>
+  pivot_longer(cols = everything(),
+               names_to = c("variable",".value"),
+               names_sep = "_")
+
+bikes_data |>
+  group_by(holiday,functioning) |>
+  summarize(count = n())
+
+bikes_data |>
+  group_by(season) |>
+  summarize(mean_count = mean(count),
+            mean_temp = mean(temperature),
+            mean_humidity = mean(humidity),
+            mean_windspeed = mean(wind_speed))
+
+bikes_data |>
+  group_by(functioning) |>
+  summarize(mean_count = mean(count),
+            min_count = min(count),
+            median_count = median(count),
+            max_count = max(count))
+```
+
+Notice that no bikes are rented during the non-functioning hours. As such, we'll remove those corresponding entries:
+
+```{r}
+real_bikes_data <- subset(bikes_data,functioning=="Yes")
+```
+
+7.  Summarizing across the hours
+
+```{r}
+#Summarizing data across hours. First, grouping by date, seasons and holiday. Second, finding sum of bike-count, rainfall, and snowfall. Third, finding the mean of all other weather-related variables.
+
+new_bikes_data <- real_bikes_data |>
+  group_by(date,season,holiday) |>
+  summarize("count" = sum(count),
+            "rainfall" = sum(rainfall),
+            "snowfall" = sum(snowfall),
+            "temperature" = mean(temperature),
+            "humidity" = mean(humidity),
+            "windspeed" = mean(wind_speed),
+            "visibility" = mean(visibility),
+            "dewpoint" = mean(dew_point),
+            "radiation" = mean(radiation))
+```
+
+8. Recreating basic summary stats and creating plots to explore relationships. Correlations between numeric variables will be included.  
+
+```{r}
+#Use new data frame to create basic summary stats and make plots to explore potential relationship. Special attention to correlation between all numeric variables.
+
+new_bikes_data |>
+  summarize(mean_count = mean(count),
+            mean_temp = mean(temperature),
+            mean_humidity = mean(humidity))
+
+new_bikes_numvars <- new_bikes_data |>
+  select(count,rainfall,snowfall,temperature,humidity,windspeed,visibility,dewpoint,radiation) 
+         
+bikes_numeric_cor <- round(cor(new_bikes_numvars[,3:11]),4)
+bikes_numeric_cor
+```
+Right off the bat, we see some fairly strong correlation between the rental bike count (our desired response) and temperature, dew point, and radiation. However, there are plenty of places where multicollinearity could exist like the dew point vs. temperature and the dew point vs. humidity. In fact, the highest correlation is within the former pair. These will be demonstrated below.
+
+```{r}
+#Scatterplot of Temperature vs. Total Count
+ggplot(new_bikes_data,aes(x=temperature,y=count))+
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+We can see that the predictor that has the strongest correlation with the response (average temperature vs. total count) already violates at least one of the model assumptions (having non-constant variance) when considered as a SLR model. Below, we group each of these by season to determine if that has an effect on the total count.
+
+```{r}
+#Scatterplot of Temperature vs. Total Count by Season
+ggplot(new_bikes_data,aes(x=temperature,y=count,color=season))+
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+Doing four separate SLR models by season doesn't appear to make much of a difference, even if considered as an ANCOVA model with the season as the "treatment" and the average temperature as the covariate.
+
+Let's try using the average radiation, which is the predictor with the second highest correlation with the total count.
+
+```{r}
+#Scatterplot of Radiation vs. TotalCount
+ggplot(new_bikes_data,aes(x=radiation,y=count))+
+  geom_point()
+```
+
+To show that multicollinearity exists amongst the set of predictors, a scatterplot and fitted line between the two predictors with the highest overall correlation is shown below.
+
+```{r}
+ggplot(new_bikes_data,aes(x=dewpoint,y=temperature)) +
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+Here's another pair of predictors that have a fairly moderate linear relationship.
+
+```{r}
+ggplot(new_bikes_data,aes(x=dewpoint,y=humidity)) +
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+Next, we can do a collection of histograms for the response and some of the predictors to see if any skewness exists.
+
+```{r}
+ggplot(new_bikes_data,aes(count)) +
+  geom_histogram(bins=20)
+```
+
+```{r}
+ggplot(new_bikes_data,aes(temperature)) +
+  geom_histogram(bins=20)
+```
+
+```{r}
+ggplot(new_bikes_data,aes(humidity)) +
+  geom_histogram(bins=15)
+```
+
+```{r}
+ggplot(new_bikes_data,aes(radiation)) +
+  geom_histogram(bins=15)
+```
+
+For a little bit of variety, here's a boxplot depicting the wind speed by season.
+
+```{r}
+ggplot(new_bikes_data,aes(x=season,y=windspeed)) +
+  geom_boxplot()
+```
+
+##Splitting the Data
+
+Before officially fitting any models, we'll split our data into a training and testing set:
+
+```{r}
+bikes_split <- rsample::initial_split(new_bikes_data,prop=0.75,strata=season)
+bikes_train=training(bikes_split)
+bikes_test=testing(bikes_split)
+```
+
+##Fitting MLR Models
+
+We'll make one more modification to the data set by creating a binary type factor variable for the date that's based on where it falls on a weekend or not.
+
+```{r}
+#Converting date variable into binary type of categorical variable
+updated_bikes_data <- new_bikes_data |>
+  mutate(type_of_day = factor(ifelse(wday(date) %in% c(1,7), "Weekend","Weekday")))
+
+new_bikes_train = bikes_train |>
+  mutate(type_of_day = factor(ifelse(wday(date) %in% c(1,7), "Weekend","Weekday")))
+new_bikes_test = bikes_test |>
+  mutate(type_of_day = factor(ifelse(wday(date) %in% c(1,7), "Weekend","Weekday")))
+
+#Isolate numeric variables for standardizing
+numvars_one <- sapply(new_bikes_train,is.numeric)
+numvars_two <- sapply(new_bikes_test,is.numeric)
+numvars_all <- sapply(updated_bikes_data,is.numeric)
+```
+
+Note that several columns were isolated so we can standardize the numerical variables.
+
+```{r}
+#Standardizing numeric variables for training set
+scaled_bikes_train <- new_bikes_train
+scaled_bikes_train[numvars_one] <- scale(new_bikes_train[numvars_one])
+
+#Collecting the mean and sd vectors from the training set  
+scaled_bikes_train_means <- sapply(scaled_bikes_train[numvars_one],mean)
+scaled_bikes_train_sds <- sapply(scaled_bikes_train[numvars_one],sd)
+
+#Same standardizing procedure for testing set, but with the mean and sd of the training set
+scaled_bikes_test <- new_bikes_test
+scaled_bikes_test[numvars_two] <- scale(new_bikes_test[numvars_two],center=scaled_bikes_train_means,scale=scaled_bikes_train_sds)
+```
+
+With our data sets scaled, we can fit three type of MLR models using the scaled training set:
+
+  i) an additive MLR model with all the predictors (numerical and categorical)
+  ii) the same additive MLR model with all predictors plus a few interaction terms
+  iii) the model from part (ii) along with a couple of quadratic terms
+  
+Summaries for each model, including the estimated parameters, are given below.
+
+```{r}
+mod1 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+season+holiday+type_of_day,data=as.data.frame(scaled_bikes_train))
+
+mod2 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+season+holiday+type_of_day+season:holiday+season:temperature+temperature:rainfall,data=as.data.frame(scaled_bikes_train))
+
+mod3 = lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+season+holiday+type_of_day+season:holiday+season:temperature+temperature:rainfall+I(temperature^2)+I(humidity^2),data=as.data.frame(scaled_bikes_train))
+
+summary(mod1)
+summary(mod2)
+summary(mod3)
+```
+
+Based on solely the adjusted $R^2$, the third model barely has the edge over the second model. However, we'll look at predictions based on the testing set for each model and evaluate the test RMSE.
+
+Find test set RMSE for each model and determine which model minimizes this value. Use the entire data to fit selected model, and standardize using entire mean and sd for all data.
+
+```{r}
+test_RMSE1 <- sqrt(mean((new_bikes_test$count - predict(mod1,new_bikes_test))^2))
+test_RMSE2 <- sqrt(mean((new_bikes_test$count - predict(mod2,new_bikes_test))^2))
+test_RMSE3 <- sqrt(mean((new_bikes_test$count - predict(mod3,new_bikes_test))^2))
+
+test_RMSE1
+test_RMSE2
+test_RMSE3
+```
+
+Strangely, the first model with strictly the main effects barely has the smallest test RMSE here. We'll use the entire standardized data set to fit that model.
+
+```{r}
+scaled_bikes_data <- updated_bikes_data
+scaled_bikes_data[numvars_all] <- scale(updated_bikes_data[numvars_all])
+
+mod_final <- lm(count~temperature+humidity+rainfall+snowfall+windspeed+visibility+dewpoint+radiation+season+holiday+type_of_day,data=as.data.frame(scaled_bikes_data))
+
+summary(mod_final)
+```
+
+#Extension of Modeling with `tidymodels`
+
+At this point in time, we can (finally) incorporate functions from `tidymodels`. Let's make sure we load the package first.
+
+```{r}
+#Install if necessary
+library(tidymodels)
+```
+
+##Splitting Data via `tidymodels`
+
+We'll split the data like we usually do:
+
+```{r}
+tidy_bikes_split = initial_split(new_bikes_data,strata=season)
+tidy_bikes_train = training(tidy_bikes_split)
+tidy_bikes_test = testing(tidy_bikes_split)
+```
+
+...and perform 10-fold cross validation on the training set:
+
+```{r}
+tidy_bikes_tenfold = vfold_cv(tidy_bikes_train,10)
+```
+
+##Recipes for MLR Models
+
+From the models that were fitted above, we'll do the same thing using functions from `recipes` and`parsnip`.
+
+```{r}
+#Main effects model with all predictors
+recipe_one = recipe(count~.,data=tidy_bikes_train) |>
+  step_date(date,features="dow",keep_original_cols=FALSE) |>
+  step_mutate(type_of_day=factor(
+    ifelse(date_dow %in% c("Sat","Sun"),
+           "weekend",
+           "weekday"))) |>
+  step_rm(date_dow) |>
+  step_normalize(all_numeric()) |>
+  step_dummy(all_nominal())
+
+model_one = linear_reg() |>
+  set_engine("lm")
+
+model_one_workflow = workflow() |>
+  add_recipe(recipe_one) |>
+  add_model(model_one)
+
+fitted_model_one = model_one_workflow |>
+  fit(tidy_bikes_train)
+
+fitted_model_one |>
+  tidy()
+```
+
+```{r}
+#Model with interaction terms
+```
+
+```{r}
+#Model with quadratic terms
+```
