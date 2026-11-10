@@ -117,3 +117,79 @@ bike_subset1 |>
 ```
 
 ## Task 1: Split the data
+
+```{r}
+#split data into 75/25 ratio
+bike_split <- initial_split(
+  bike_subset1,
+  prop = 0.75,
+  strata = seasons
+)
+
+#store splits as datasets
+bike_train <- training(bike_split)
+bike_test <- testing(bike_split)
+
+#create 10 fold split of training data and fold
+bike_fold <- vfold_cv(
+  bike_train,
+  v = 10,
+  strata = seasons
+)
+```
+
+## Task 2: Recipes
+
+```{r}
+#Recipe 1
+recipe1 <- recipe(sum_bkcnt ~., data = bike_train) |>
+            step_date(date, features = "dow", keep_original_cols = FALSE) |>
+            step_mutate(
+              day_type = factor(
+                if_else(
+                  day_type %in% c("Sat", "Sun"),
+                  "Weekend", "Weekday"
+                )
+              )
+            ) |>
+            step_rm(day_type) |>
+            step_normalize(all_numeric_predictors()) |>
+            step_dummy(all_nominal_predictors())
+
+#Recipe 2
+recipe2 <- recipe(sum_bkcnt ~ ., data = bike_train) |> 
+            step_date(date, features = c("dow")) |>
+            step_mutate(day_type = factor(ifelse(date_dow %in% 
+                                                  c('Sat', 'Sun'), 
+                                                 'weekend', 'weekday'))) |>
+            step_rm(date, date_dow) |>
+            step_normalize(all_numeric_predictors()) |>
+            step_dummy(seasons, holiday, dayType) |>
+            step_interact(~starts_with('seasons'):starts_with('holiday') + 
+                            starts_with('seasons'):mean_tmp + 
+                            mean_tmp:sum_rf)
+
+#Recipe3
+recipe3 <- recipe(sum_bkcnt ~ ., data = bike_train) |> 
+                    step_date(date, features = c("dow")) |>
+                    step_mutate(dayType = factor(ifelse(date_dow %in% 
+                                                          c('Sat', 'Sun'),
+                                                        'weekend', 'weekday'))) |>
+                    step_rm(date, date_dow) |>
+                    step_normalize(all_numeric_predictors()) |>
+                    step_dummy(seasons, holiday, dayType) |>
+                    step_interact(~starts_with('seasons'):starts_with('holiday') + 
+                                    starts_with('seasons'):mean_tmp +
+                                    temperatureC:sum_rf) |>
+                    step_poly(mean_tmp,mean_humid)
+```
+
+## Task 3: Fit Models
+
+```{r}
+#set up engine
+MLR_spec <- linear_reg() |>
+  set_engine("lm")
+
+
+```
