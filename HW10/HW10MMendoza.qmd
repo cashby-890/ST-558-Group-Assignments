@@ -1,0 +1,288 @@
+---
+title: "Homework 9"
+author: "Michael Mendoza"
+format: html
+editor: visual
+---
+
+# Setup/Misc.
+
+```{r}
+#| echo: false
+
+# Uncomment Librarys Required
+library(tidyverse)
+#library(readxl)
+#library(readr)
+#library(DBI)
+#library(RSQLite)
+#library(tidycensus)
+#library(jsonlite)
+#library(httr)
+library(lubridate)
+library(rsample)
+
+# Set seed for random data creation for replication
+set.seed(123)
+```
+
+## Task 1: Reading in the DATA and EDA
+
+```{r}
+# Read in data
+bike_data <- read_csv(
+  "https://www4.stat.ncsu.edu/~online/datasets/SeoulBikeData.csv", 
+  locale = locale(encoding = "latin1"),
+  show_col_types = FALSE
+)
+
+#check for missing Data
+colSums(is.na(bike_data))
+
+#general Summary Stats
+summary(bike_data)
+
+#DATA Clean up/Variable Renaming
+bike_data <- mutate(bike_data,
+    Date = dmy(Date),
+    Seasons = factor(Seasons),
+    Holiday = factor(Holiday),
+    `Functioning Day` = factor(`Functioning Day`)
+  ) |>
+  rename(
+    date = Date,
+    bike_count = `Rented Bike Count`,
+    hour = Hour,
+    temp = `Temperature(°C)`,
+    humidity = `Humidity(%)`,
+    wind_speed = `Wind speed (m/s)`,
+    visibility = `Visibility (10m)`,
+    dew_point_temp = `Dew point temperature(°C)`,
+    solar_radiation = `Solar Radiation (MJ/m2)`,
+    rainfall = `Rainfall(mm)`,
+    snowfall = `Snowfall (cm)`,
+    seasons = Seasons,
+    holiday = Holiday,
+    functioning_day = `Functioning Day`
+  )
+
+#Summary statistics of Bike rentals grouped by Functioning Day
+bike_data |>
+  group_by(functioning_day) |>
+  summarise(
+    count_obs = n(),
+    mean_rentals = mean(bike_count),
+    stddev_rentals = sd(bike_count),
+    median_rentals = median(bike_count),
+    min_rentals = min(bike_count),
+    max_rentals = max(bike_count)
+  )
+```
+
+We can noticed from this that when "functioning_day" is the factor value of "No", no bikes were rented. we now decide to remove those occurrences from our original results. The final dataset is then outputted as "bike_subset1".
+
+```{r}
+#create subsetted dataset
+bike_yes <- subset(bike_data, functioning_day == "Yes")
+
+#create sums of days by date, seasons, and holiday variables
+bike_subset1 <- bike_yes |>
+                  group_by(date, seasons, holiday) |>
+                    summarise(sum_bkcnt = sum(bike_count),
+                               sum_rf = sum(rainfall),
+                               sum_sf = sum(snowfall),
+                               mean_tmp = mean(temp),
+                               mean_humid = mean(humidity),
+                               mean_winds = mean(wind_speed),
+                               mean_vis = mean(visibility),
+                               mean_dptmp = mean(dew_point_temp),
+                               mean_slrad = mean(solar_radiation),
+                              .groups = "drop"
+                               )
+
+#Summary stats (removing Date as it makes sense to analyze this date per season/holiday based on our set up. Date will likely be best used to measure changes over time).
+bike_subset1 |>
+  group_by(seasons, holiday) |>
+  summarise(
+    count_obs = n(),
+    mean_rentals = mean(sum_bkcnt),
+    stddev_rentals = sd(sum_bkcnt),
+    median_rentals = median(sum_bkcnt),
+    min_rentals = min(sum_bkcnt),
+    max_rentals = max(sum_bkcnt)
+  )
+
+```
+
+## Investigative plots
+
+Various outputs were created as an initial investigation into the data sets.
+
+```{r}
+#Boxplot of bike count by seasons
+ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = seasons)) +
+  geom_boxplot(alpha = 0.7, show.legend = FALSE) + 
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rental Counts Across Seasons",
+    x = "Season",
+    y = "Total Daily Rentals"
+  )
+
+#General bar plots
+  ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = holiday)) +
+    geom_col(position = "dodge") + 
+    theme_minimal() +
+    labs(
+      x = "Season",
+      y = "Total Daily Rentals",
+      fill = "Holiday status"
+    )
+
+#Bike Rentals over time Plot
+ggplot(bike_subset1, aes(x = date, y = sum_bkcnt, color = seasons)) +
+  geom_point(alpha = 0.8, size = 2) +
+  geom_smooth(method = "loess", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rentals Over Time by Seasons",
+    x = "Date",
+    y = "Total Daily Rentals"
+  )
+
+
+#Numeric Summaries
+numeric_vars <- bike_subset1 |>
+                  select(sum_bkcnt, starts_with("mean_")
+                         )
+
+#Correlation matrix 
+cor_matrix <- round(cor(numeric_vars), 4)
+cor_matrix
+```
+
+## Data Splinting (+Weekday/Weekend Factoring)
+
+Split the data into a test and training set. Then derive "day_type" as a factor indicator for a "Weekend" or "Weekday" day.
+
+```{r}
+#split the data
+data_split <- initial_split(bike_subset1, prop = 0.75, strata = seasons)
+bike_train <- training(data_split)
+bike_test <- testing(data_split)
+
+# Verify split proportions and stratification
+table(bike_train$seasons) / nrow(bike_train)
+table(bike_test$seasons) / nrow(bike_test)
+
+#Formating weekend/weekday
+bike_train <- bike_train |>
+                mutate(
+                  day_type = factor(if_else(wday(date) %in% c(1,7), 
+                                            "Weekend", "Weekday"))
+  )
+bike_test <- bike_test |>
+                mutate(
+                  day_type = factor(if_else(wday(date) %in% c(1,7), 
+                                            "Weekend", "Weekday"))
+                )
+```
+
+## Standardized Data
+
+Standardized Numeric Variables by subtracting its training set mean and dividing by its training set standard deviation.
+
+```{r}
+#Calculate Training Mean/stddev
+num_name <- bike_subset1 |>
+  select(starts_with("mean_")
+  ) |> 
+  colnames()
+train_mean <- sapply(bike_train[num_name], mean)
+train_sd <- sapply(bike_train[num_name], sd)
+
+#Standardize training set
+train_std <- bike_train
+train_std[num_name] <- scale(bike_train[num_name], center = train_mean, scale = train_sd)
+
+#Standardize test set using training parameters
+test_std <- bike_test
+for (x in num_name) {
+  test_std[[x]] <- (bike_test[[x]]-train_mean[[x]])/train_sd[[x]]
+}
+```
+
+## RMSE Function
+
+Creates RMSE function for use later
+
+```{r}
+#Function for RMSE
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+```
+
+## Model 1
+
+A model with all the standardized numeric variables included along with the seasons, holiday, and
+weekend/weekday variables.
+
+```{r}
+#creates object model_1
+model_1 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type,
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_1.pred <- predict(model_1, newdata = test_std)
+model_1.rmse <- rmse(test_std$sum_bkcnt, model_1.pred)
+
+#print outputs
+model_1.rmse
+```
+
+## Model 2
+
+A model with all the terms in the first model but also interactions between seasons and holiday, seasons
+and temp, and temp and rainfall
+
+```{r}
+#creates object model_2
+model_2 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type + seasons:holiday + 
+                seasons:mean_tmp + mean_tmp:sum_rf,
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_2.pred <- predict(model_2, newdata = test_std)
+model_2.rmse <- rmse(test_std$sum_bkcnt, model_2.pred)
+
+#print outputs
+model_2.rmse
+```
+
+## Model 3
+
+A model with all the terms in the second model and also squared terms for the temp and humidity
+variables
+
+```{r}
+
+#creates object model_2
+model_3 <- lm(sum_bkcnt ~ mean_tmp + mean_humid + mean_winds + mean_vis +
+                mean_dptmp + mean_slrad + day_type + seasons:holiday + 
+                seasons:mean_tmp + mean_tmp:sum_rf + I(mean_tmp^2) + 
+                I(mean_humid^2),
+              data = train_std
+              )
+
+#Fit model and calculate RMSE
+model_3.pred <- predict(model_3, newdata = test_std)
+model_3.rmse <- rmse(test_std$sum_bkcnt, model_3.pred)
+
+#print outputs
+model_3.rmse
+```
