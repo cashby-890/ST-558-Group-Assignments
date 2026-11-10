@@ -202,10 +202,12 @@ MLR_fit1 <-  MLR_wkf1 |>
                 metrics = multi_metric)
 
 MLR_fit2 <- MLR_wkf2 |>
-  fit_resamples(trainFolds) 
+  fit_resamples(trainFolds, 
+                metrics = multi_metric) 
 
 MLR_fit3 <- MLR_wkf3 |>
-  fit_resamples(trainFolds)
+  fit_resamples(trainFolds, 
+                metrics = multi_metric)
 ```
 
 Compare the training set CV error to choose the best of the three models:
@@ -220,7 +222,8 @@ Based on the RMSE, the second model is the best.
 
 Fit the finalized model on the full training data set and evaluate the finalized model on the testing data:
 ```{r}
-fullTrainFit <- last_fit(MLR_wkf2, split = splitData)
+fullTrainFit <- last_fit(MLR_wkf2, split = splitData, 
+                metrics = multi_metric)
 ```
 
 
@@ -256,7 +259,8 @@ Fit the model on the folds:
 ```{r}
 regTree_fits <- regTree_wkf |> 
   tune_grid(resamples = trainFolds,
-            grid = tree_grid)
+            grid = tree_grid, 
+            metrics = multi_metric)
 regTree_fits
 ```
 
@@ -282,7 +286,8 @@ regTree_final_wkf <- regTree_wkf |>
 Fit the finalized model on the full training data set and evaluate the finalized model on the testing data:
 ```{r}
 regTree_final_fit <- regTree_final_wkf |>
-  last_fit(splitData)
+  last_fit(splitData, 
+           metrics = multi_metric)
 ```
 
 Collect metrics:
@@ -321,7 +326,8 @@ Fit the model on the folds:
 ```{r}
 bagTree_fits <- bagTree_wkf |> 
   tune_grid(resamples = trainFolds,
-            grid = tree_grid)
+            grid = tree_grid, 
+            metrics = multi_metric)
 bagTree_fits
 ```
 
@@ -347,7 +353,8 @@ bagTree_final_wkf <- bagTree_wkf |>
 Fit the finalized model on the full training data set and evaluate the finalized model on the testing data:
 ```{r}
 bagTree_final_fit <- bagTree_final_wkf |>
-  last_fit(splitData)
+  last_fit(splitData, 
+           metrics = multi_metric)
 ```
 
 Collect metrics:
@@ -377,7 +384,8 @@ Fit the model on the folds:
 ```{r}
 ranFor_fits <- ranFor_wkf |> 
   tune_grid(resamples = trainFolds,
-            grid = 7)
+            grid = 7, 
+            metrics = multi_metric)
 ranFor_fits
 ```
 
@@ -403,7 +411,8 @@ ranFor_final_wkf <- ranFor_wkf |>
 Fit the finalized model on the full training data set and evaluate the finalized model on the testing data:
 ```{r}
 ranFor_final_fit <- ranFor_final_wkf |>
-  last_fit(splitData)
+  last_fit(splitData, 
+           metrics = multi_metric)
 ```
 
 Collect metrics:
@@ -415,8 +424,6 @@ ranFor_final_fit |>
 ### Compare Final Models
 
 Compare all final models on the test set using both RMSE and MAE:
-
-* RMSE
 ```{r}
 rbind(
   fullTrainFit |>
@@ -433,8 +440,6 @@ rbind(
   mutate(Model = "Random Forest", .before = ".metric")
 )
 ```
-
-* MAE
 
 Report the final coefficient table for the MLR model:
 ```{r}
@@ -478,7 +483,7 @@ ggplot(data = ranFor_plotData, aes(x = term, y = value)) +
 Fit overall best model (random forest) to the entire data set:
 ```{r}
 final_model <- ranFor_final_wkf |>
-  fit(bikeDaily)
+  last_fit(bikeDaily)
 
 ```
 
