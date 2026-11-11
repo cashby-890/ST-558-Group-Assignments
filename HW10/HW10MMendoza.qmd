@@ -113,7 +113,46 @@ bike_subset1 |>
     min_rentals = min(sum_bkcnt),
     max_rentals = max(sum_bkcnt)
   )
+#Boxplot of bike count by seasons
+ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = seasons)) +
+  geom_boxplot(alpha = 0.7, show.legend = FALSE) + 
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rental Counts Across Seasons",
+    x = "Season",
+    y = "Total Daily Rentals"
+  )
 
+#General bar plots
+ggplot(bike_subset1, aes(x = seasons, y = sum_bkcnt, fill = holiday)) +
+  geom_col(position = "dodge") + 
+  theme_minimal() +
+  labs(
+    x = "Season",
+    y = "Total Daily Rentals",
+    fill = "Holiday status"
+  )
+
+#Bike Rentals over time Plot
+ggplot(bike_subset1, aes(x = date, y = sum_bkcnt, color = seasons)) +
+  geom_point(alpha = 0.8, size = 2) +
+  geom_smooth(method = "loess", se = FALSE) +
+  theme_minimal() +
+  labs(
+    title = "Daily Bike Rentals Over Time by Seasons",
+    x = "Date",
+    y = "Total Daily Rentals"
+  )
+
+
+#Numeric Summaries
+numeric_vars <- bike_subset1 |>
+  select(sum_bkcnt, starts_with("mean_")
+  )
+
+#Correlation matrix 
+cor_matrix <- round(cor(numeric_vars), 4)
+cor_matrix
 ```
 
 ## Task 1: Split the data
@@ -147,7 +186,7 @@ recipe1 <- recipe(sum_bkcnt ~., data = bike_train) |>
             step_mutate(
               day_type = factor(
                 if_else(
-                  day_type %in% c("Sat", "Sun"),
+                  date_dow %in% c("Sat", "Sun"),
                   "Weekend", "Weekday"
                 )
               )
@@ -157,39 +196,58 @@ recipe1 <- recipe(sum_bkcnt ~., data = bike_train) |>
             step_dummy(all_nominal_predictors())
 
 #Recipe 2
-recipe2 <- recipe(sum_bkcnt ~ ., data = bike_train) |> 
-            step_date(date, features = c("dow")) |>
-            step_mutate(day_type = factor(ifelse(date_dow %in% 
-                                                  c('Sat', 'Sun'), 
-                                                 'weekend', 'weekday'))) |>
-            step_rm(date, date_dow) |>
-            step_normalize(all_numeric_predictors()) |>
-            step_dummy(seasons, holiday, dayType) |>
-            step_interact(~starts_with('seasons'):starts_with('holiday') + 
-                            starts_with('seasons'):mean_tmp + 
-                            mean_tmp:sum_rf)
+recipe2 <- recipe1 |>  
+  step_interact( terms = ~ starts_with("seasons_"):starts_with("holiday_") +
+                   starts_with("seasons_"):mean_tmp + mean_tmp:sum_rf)
 
 #Recipe3
-recipe3 <- recipe(sum_bkcnt ~ ., data = bike_train) |> 
-                    step_date(date, features = c("dow")) |>
-                    step_mutate(dayType = factor(ifelse(date_dow %in% 
-                                                          c('Sat', 'Sun'),
-                                                        'weekend', 'weekday'))) |>
-                    step_rm(date, date_dow) |>
-                    step_normalize(all_numeric_predictors()) |>
-                    step_dummy(seasons, holiday, dayType) |>
-                    step_interact(~starts_with('seasons'):starts_with('holiday') + 
-                                    starts_with('seasons'):mean_tmp +
-                                    temperatureC:sum_rf) |>
-                    step_poly(mean_tmp,mean_humid)
+recipe3 <- recipe2 |>
+  step_mutate(
+    tmp_sq = mean_tmp^2,
+    humid_sq = mean_humid^2
+  )
 ```
 
 ## Task 3: Fit Models
 
 ```{r}
 #set up engine
-MLR_spec <- linear_reg() |>
+mlr_spec <- linear_reg() |>
   set_engine("lm")
 
+#set up workflow functions
+#model 1
+workflow1 <- workflow() |>
+  add_recipe(recipe1) |>
+  add_model(mlr_spec)
+#model 2
+workflow2 <- workflow() |>
+  add_recipe(recipe2) |>
+  add_model(mlr_spec)
 
+#model 3
+workflow3 <- workflow() |>
+  add_recipe(recipe3) |>
+  add_model(mlr_spec)
+
+#fit models
+#model 1
+fit1 <-  workflow1 |>
+fit_resamples(bike_fold, 
+              metrics = metric_set(rmse, mae))
+
+#model 2
+fit2 <-  workflow2 |>
+  fit_resamples(bike_fold, 
+                metrics = metric_set(rmse, mae))
+
+#model 1
+fit3 <-  workflow3 |>
+  fit_resamples(bike_fold, 
+                metrics = metric_set(rmse, mae))
+
+#Collect Metrics
+collect_metrics(fit1)
+collect_metrics(fit2)
+collect_metrics(fit3)
 ```
