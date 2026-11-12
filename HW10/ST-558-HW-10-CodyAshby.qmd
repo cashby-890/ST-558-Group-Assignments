@@ -311,6 +311,9 @@ At this point in time, we can (finally) incorporate functions from `tidymodels`.
 ```{r}
 #Install if necessary
 library(tidymodels)
+library(rpart)
+library(baguette)
+library(ranger)
 ```
 
 ##Splitting Data via `tidymodels`
@@ -331,7 +334,7 @@ tidy_bikes_tenfold = vfold_cv(tidy_bikes_train,10)
 
 ##Recipes for MLR Models
 
-From the models that were fitted above, we'll do the same thing using functions from `recipes` and`parsnip`.
+From the models that were fitted above, we'll do the same thing using functions from `recipes` and`parsnip`. First, we'll create the recipes for the MLR models.
 
 ```{r}
 #Main effects model with all predictors
@@ -345,24 +348,276 @@ recipe_one = recipe(count~.,data=tidy_bikes_train) |>
   step_normalize(all_numeric()) |>
   step_dummy(all_nominal())
 
-model_one = linear_reg() |>
+#Model with inclusion of interaction terms
+recipe_two = recipe(count~.,data=tidy_bikes_train) |>
+  step_date(date,features="dow",keep_original_cols=FALSE) |>
+  step_mutate(type_of_day=factor(
+    ifelse(date_dow %in% c("Sat","Sun"),
+           "weekend",
+           "weekday"))) |>
+  step_rm(date_dow) |>
+  step_normalize(all_numeric()) |>
+  step_dummy(all_nominal()) |>
+  step_interact(~ starts_with("season"):starts_with("holiday") + 
+                  starts_with("season"):temperature + temperature:rainfall)
+
+#Model with interaction and quadratic terms
+recipe_three = recipe(count~.,data=tidy_bikes_train) |>
+  step_date(date,features="dow",keep_original_cols=FALSE) |>
+  step_mutate(type_of_day=factor(
+    ifelse(date_dow %in% c("Sat","Sun"),
+           "weekend",
+           "weekday"))) |>
+  step_rm(date_dow) |>
+  step_normalize(all_numeric()) |>
+  step_dummy(all_nominal()) |>
+  step_interact(~ starts_with("season"):starts_with("holiday") + 
+                  starts_with("season"):temperature + temperature:rainfall) |>
+  step_poly(temperature,humidity)
+```
+
+```{r}
+#Setting up the linear models using the lm engine
+MLR_model = linear_reg() |>
   set_engine("lm")
 
+#Defining the workflows for each MLR model.
 model_one_workflow = workflow() |>
   add_recipe(recipe_one) |>
-  add_model(model_one)
+  add_model(MLR_model)
 
-fitted_model_one = model_one_workflow |>
-  fit(tidy_bikes_train)
+model_two_workflow = workflow() |>
+  add_recipe(recipe_two) |>
+  add_model(MLR_model)
 
-fitted_model_one |>
-  tidy()
+model_three_workflow = workflow() |>
+  add_recipe(recipe_three) |>
+  add_model(MLR_model)
 ```
 
 ```{r}
-#Model with interaction terms
+fitted_model_one_CV = model_one_workflow |>
+  fit_resamples(tidy_bikes_tenfold)
+
+fitted_model_two_CV = model_two_workflow |>
+  fit_resamples(tidy_bikes_tenfold)
+
+fitted_model_three_CV = model_three_workflow |>
+  fit_resamples(tidy_bikes_tenfold)
+```
+
+We'll collect the main metrics for each of these cross-validations and focus on the RMSE.
+
+```{r}
+fitted_model_one_CV |>
+  collect_metrics() 
+
+fitted_model_two_CV |>
+  collect_metrics() 
+
+fitted_model_three_CV |>
+  collect_metrics() 
+```
+
+For the three MLR models trained above, the second model that includes interaction terms, but no quadratic terms, has the lowest RMSE. Including the quadratic terms led to a slight increase in the RMSE. We'll use the workflow from that model and fit the entire training set to it. The metrics for fitting this model on the entire training set are shown below.
+
+```{r}
+best_mlr = model_two_workflow |>
+  last_fit(tidy_bikes_split) 
+
+best_mlr |>
+  collect_metrics()
+```
+
+Using the entire training set gives us a larger RMSE compared to that from using cross-validation, but the $R^2$ is strong enough to justify using this model.
+
+##Recipes for Other Models (Trees, Bagging, Random Forests)
+
+For this portion, we'll use the first recipe (consisting only of the main effects) to fit tree-type models; namely, we'll fit a regression tree, a bagged tree, and an random forest. Functions from the `baguette` and `rpart` packages will be incorporated here.
+
+```{r}
+reg_tree = decision_tree(tree_depth= tune(),
+                         min_n = 20,
+                         cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+reg_tree_workflow = workflow() |>
+  add_recipe(recipe_one) |>
+  add_model(reg_tree)
+
+tree_grid = grid_regular(cost_complexity(),
+                         tree_depth(),
+                         levels = 5)
+
+fitted_reg_trees = reg_tree_workflow |>
+  tune_grid(resamples = tidy_bikes_tenfold,
+            grid = tree_grid)
+
+fitted_reg_tree_metrics = fitted_reg_trees |>
+  collect_metrics() |>
+  filter(.metric == "rmse")
+
+best_tree_params = select_best(fitted_reg_trees,metric="rmse")
+best_tree_params
+```
+
+The parameters from the best fitted tree model will now be used for fitting with the entire training set.
+
+```{r}
+best_tree_workflow = reg_tree_workflow |>
+  finalize_workflow(best_tree_params)
+
+best_fitted_tree = best_tree_workflow |>
+  last_fit(tidy_bikes_split)
+
+best_fitted_tree |>
+  collect_metrics()
+```
+
+We follow a similar procedure for a bagged tree.
+
+```{r}
+bagged_tree = bag_tree(tree_depth = tune(),
+                       min_n = 20,
+                       cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("regression")
+
+bag_workflow = workflow() |>
+  add_recipe(recipe_one) |>
+  add_model(bagged_tree)
+
+bag_grid = grid_regular(cost_complexity(),tree_depth(),levels=5)
+
+fitted_bag = bag_workflow |>
+  tune_grid(resamples = tidy_bikes_tenfold,
+            grid=bag_grid)
+
+fitted_bag_metrics = fitted_bag |>
+  collect_metrics() |>
+  filter(.metric == "rmse")
+
+best_bag_params = select_best(fitted_bag,metric="rmse")
+best_bag_params
+```
+
+We'll now use the parameters for the best bagged tree and use it for fitting with the entire training set.
+
+```{r}
+best_bag_workflow = bag_workflow |>
+  finalize_workflow(best_bag_params)
+
+best_fitted_bag = best_bag_workflow |>
+  last_fit(tidy_bikes_split)
+
+best_fitted_bag|>
+  collect_metrics()
+```
+
+Lastly, we'll do this for a random forest.
+
+```{r}
+random_forest = rand_forest(mtry = tune(),
+                            trees = tune(),
+                            min_n = 20) |>
+  set_engine("ranger",importance = "permutation") |>
+  set_mode("regression")
+
+random_forest_workflow = workflow() |>
+  add_recipe(recipe_one) |>
+  add_model(random_forest)
+
+#random_forest_grid = crossing(mtry = c(3L:8L),trees = c(50L:200L))
+
+fitted_random_forest = random_forest_workflow |>
+  tune_grid(resamples = tidy_bikes_tenfold,
+            grid = 5)
+
+fitted_random_forest_metrics = fitted_random_forest |>
+  collect_metrics() |>
+  filter(.metric == "rmse")
+
+best_random_forest_params = select_best(fitted_random_forest,metric="rmse")
+best_random_forest_params
+```
+
+The parameters from this will now be used to fit the model.
+
+```{r}
+best_RanFor_workflow = random_forest_workflow |>
+  finalize_workflow(best_random_forest_params)
+
+best_fitted_RanFor = best_RanFor_workflow |>
+  last_fit(tidy_bikes_split)
+
+best_fitted_RanFor|>
+  collect_metrics()
+```
+
+##Comparing Models on Test Set
+
+Below is a collection of the metrics for the best MLR model, regression tree, bagged tree, and random forest.
+
+```{r}
+rbind(best_mlr |> collect_metrics(),
+      best_fitted_tree |> collect_metrics(),
+      best_fitted_bag |> collect_metrics(),
+      best_fitted_RanFor |> collect_metrics())
+```
+
+So far, it appears that the fitted random forest, having the smallest RMSE, is the best model here.
+Now, we'll look at a summary for each of these models.
+
+```{r}
+#Coefficients for the best MLR model
+best_mlr_coefs = extract_fit_parsnip(best_mlr)
+best_mlr_coefs
 ```
 
 ```{r}
-#Model with quadratic terms
+#Plot for best regression tree
+best_reg_tree = extract_fit_engine(best_fitted_tree)
+best_reg_tree$imp |>
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(term,value)) +
+  geom_bar(stat="identity") +
+  coord_flip()
+```
+
+```{r}
+#Plot for best bagged tree
+best_bagged_tree = extract_fit_engine(best_fitted_bag)
+best_bagged_tree$imp |>
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(term,value)) +
+  geom_bar(stat="identity") +
+  coord_flip()
+```
+
+```{r}
+#Plot for best random forest
+best_random_forest = extract_fit_engine(best_fitted_RanFor)
+best_RF_data = tibble(term=names(best_random_forest[["variable.importance"]]),
+                      value=best_random_forest[["variable.importance"]]) |>
+  arrange(value) |>
+  mutate(term = factor(term,levels=term))
+
+
+ggplot(best_RF_data,aes(term,value)) +
+  geom_bar(stat="identity") +
+  coord_flip()
+```
+
+For each of the tree-based models, three numerical predictors stand out as important for modeling this data: temperature, radiation, and dew point.
+
+##Fitting the Final Model
+
+Now, we'll use the model that has the lowest RMSE to fit the entire data set.
+
+```{r}
+fitted_final_model = best_RanFor_workflow |>
+  fit(new_bikes_data)
+
+fitted_final_model
 ```
