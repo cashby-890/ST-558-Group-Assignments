@@ -1,0 +1,23 @@
+---
+title: "ST 558 - Homework 10"
+subtitle: "Modeling Practice"
+format: html
+editor: visual
+---
+
+## Group Homework Submission
+
+This page contains our group's work for Homework 10, which focuses on model fitting and evaluation using the tidymodels framework.
+
+## Main Modeling Report
+
+[Complete HW 10 Modeling Analysis](Group%204%20ST558%20HW10.html)
+
+## Group Contributions
+
+The following source documents contain work contributed by each group member:
+
+- [Cody — HW10](https://github.com/cashby-890/ST-558-Group-Assignments/blob/main/HW10/ST-558-HW-10-CodyAshby.qmd)
+- [Michael — HW10](https://github.com/cashby-890/ST-558-Group-Assignments/blob/main/HW10/HW10MMendoza.qmd)
+- [Shannon — HW10](https://github.com/cashby-890/ST-558-Group-Assignments/blob/main/HW10/Riley_HW10.qmd)
+- [Stanley — HW10](https://github.com/cashby-890/ST-558-Group-Assignments/blob/main/HW10/Xiao_HW10.qmd)

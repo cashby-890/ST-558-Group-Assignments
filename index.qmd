@@ -24,4 +24,5 @@ Welcome to our ST 558 Group Assignments repository. Below are links to our homew
 
 - [Homework 9](HW9/group4_HW9.qmd)
 
-- \[Homework 10\] 11/9, 11/11
+- [Homework 10](HW10/index.html)
+quarto render index.qmd --to html
